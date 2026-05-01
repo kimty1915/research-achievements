@@ -1,1342 +1,148 @@
 <!DOCTYPE html>
-<html lang="ko" data-theme="dark">
+<html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PLANBOARD v2</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Bebas+Neue&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-/* ── THEME VARIABLES ─────────────────────────────── */
-:root {
-  --accent:#ffb340; --accent-dim:rgba(255,179,64,.12); --accent-h:#ffc660;
-  --red:#ff5050; --green:#3ddc84; --blue:#5b9cf6; --purple:#a78bfa;
-  --radius:10px; --radius-sm:6px;
-}
-[data-theme="dark"] {
-  --bg:#0a0a0a; --surface:#131313; --card:#191919; --card2:#1f1f1f;
-  --border:#252525; --border2:#333;
-  --text:#f0f0f0; --muted:#888; --muted2:#444;
-}
-[data-theme="light"] {
-  --bg:#f2efe9; --surface:#e8e4dc; --card:#ffffff; --card2:#f8f6f2;
-  --border:#ddd9d0; --border2:#c8c4bb;
-  --text:#1a1a1a; --muted:#666; --muted2:#aaa;
-}
-
-/* ── RESET & BASE ────────────────────────────────── */
-*{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;font-size:14px;transition:background .2s,color .2s;}
-::-webkit-scrollbar{width:5px;height:5px;}
-::-webkit-scrollbar-track{background:var(--bg);}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
-#app{max-width:1100px;margin:0 auto;padding:0 24px 100px;}
-a{color:var(--accent);text-decoration:none;}
-a:hover{text-decoration:underline;}
-
-/* ── HEADER ──────────────────────────────────────── */
-.app-header{padding:22px 0 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);margin-bottom:28px;gap:12px;flex-wrap:wrap;}
-.app-logo{font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:3px;color:var(--accent);cursor:pointer;user-select:none;flex-shrink:0;}
-.app-logo sub{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--muted);margin-left:8px;vertical-align:middle;}
-.header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-
-/* ── BUTTONS ──────────────────────────────────────── */
-.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 15px;border-radius:var(--radius-sm);font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .16s;white-space:nowrap;}
-.btn-primary{background:var(--accent);color:#000;}
-.btn-primary:hover{background:var(--accent-h);}
-.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
-.btn-ghost:hover{border-color:var(--border2);color:var(--text);background:var(--card2);}
-.btn-danger{background:transparent;color:var(--red);border:1px solid rgba(255,80,80,.3);}
-.btn-danger:hover{background:rgba(255,80,80,.08);}
-.btn-sm{padding:5px 10px;font-size:12px;}
-.btn-icon{padding:5px 7px;font-size:13px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:var(--radius-sm);cursor:pointer;transition:all .16s;line-height:1;}
-.btn-icon:hover{border-color:var(--border2);color:var(--text);}
-.del-btn{background:none;border:none;cursor:pointer;color:var(--muted2);font-size:13px;padding:3px 5px;transition:color .16s;line-height:1;}
-.del-btn:hover{color:var(--red);}
-.mv-btn{background:none;border:none;cursor:pointer;color:var(--muted2);font-size:12px;padding:3px 4px;transition:color .16s;line-height:1;}
-.mv-btn:hover{color:var(--text);}
-.mv-btn:disabled{opacity:.2;cursor:default;}
-
-/* ── FOLDER STATUS ───────────────────────────────── */
-.folder-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:var(--radius-sm);font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);font-family:'JetBrains Mono',monospace;transition:all .16s;background:transparent;}
-.folder-btn.no-folder{color:var(--muted);}
-.folder-btn.no-folder:hover{border-color:var(--accent);color:var(--accent);}
-.folder-btn.needs-perm{color:var(--accent);border-color:rgba(255,179,64,.35);background:var(--accent-dim);}
-.folder-btn.error{color:var(--red);border-color:rgba(255,80,80,.3);}
-.folder-btn.saving-btn{color:var(--muted);animation:pulse 1.2s infinite;border-color:var(--border);}
-.folder-btn.saved-btn{color:var(--green);border-color:rgba(61,220,132,.25);}
-.folder-btn.saved-btn:hover{border-color:rgba(61,220,132,.55);}
-
-/* ── BREADCRUMB ──────────────────────────────────── */
-.breadcrumb{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);padding-bottom:20px;flex-wrap:wrap;}
-.breadcrumb .sep{color:var(--muted2);}
-.crumb{cursor:pointer;transition:color .16s;}
-.crumb:hover{color:var(--accent);}
-.crumb.cur{color:var(--text);cursor:default;pointer-events:none;}
-
-/* ── TABS ────────────────────────────────────────── */
-.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:26px;overflow-x:auto;}
-.tab{padding:9px 16px;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .16s;white-space:nowrap;flex-shrink:0;}
-.tab:hover{color:var(--text);}
-.tab.on{color:var(--accent);border-bottom-color:var(--accent);}
-
-/* ── CARDS ───────────────────────────────────────── */
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;transition:border-color .16s,transform .14s;}
-.card.click{cursor:pointer;}
-.card.click:hover{border-color:var(--accent);transform:translateY(-2px);}
-
-/* ── CHANNEL GRID (HOME) ─────────────────────────── */
-.ch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
-.ch-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;cursor:pointer;transition:border-color .16s,transform .14s;}
-.ch-card:hover{border-color:var(--accent);transform:translateY(-2px);}
-.ch-name{font-size:18px;font-weight:900;margin-bottom:5px;}
-.ch-desc{color:var(--muted);font-size:12px;line-height:1.5;margin-bottom:14px;min-height:32px;}
-.ch-meta{display:flex;gap:7px;flex-wrap:wrap;}
-.chip{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);background:var(--surface);padding:3px 8px;border-radius:4px;}
-.add-ch-card{background:var(--surface);border:1.5px dashed var(--border);border-radius:14px;padding:22px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:140px;color:var(--muted2);transition:all .2s;}
-.add-ch-card:hover{border-color:var(--accent);color:var(--accent);}
-
-/* ── BADGES ──────────────────────────────────────── */
-.badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;}
-.b-channel{background:var(--accent-dim);color:var(--accent);}
-.b-sub{background:rgba(91,156,246,.12);color:var(--blue);}
-.s-아이디어{background:rgba(80,80,80,.25);color:#aaa;}
-.s-기획중{background:rgba(255,179,64,.15);color:var(--accent);}
-.s-촬영{background:rgba(91,156,246,.15);color:var(--blue);}
-.s-편집{background:rgba(167,139,250,.15);color:var(--purple);}
-.s-완료{background:rgba(61,220,132,.15);color:var(--green);}
-.t-longform{background:rgba(91,156,246,.12);color:var(--blue);}
-.t-shorts{background:rgba(167,139,250,.12);color:var(--purple);}
-.t-compare{background:rgba(255,80,80,.1);color:var(--red);}
-.t-blank{background:rgba(80,80,80,.15);color:var(--muted);}
-
-/* ── PROJECT LIST ────────────────────────────────── */
-.proj-list{display:flex;flex-direction:column;gap:9px;}
-.proj-row{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:border-color .16s,transform .14s;}
-.proj-row:hover{border-color:var(--accent);transform:translateY(-1px);}
-.proj-row-name{font-size:15px;font-weight:700;flex:1;}
-
-/* ── CONTENT LIST ────────────────────────────────── */
-.cont-list{display:flex;flex-direction:column;gap:8px;}
-.cont-row{display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:border-color .16s;}
-.cont-row:hover{border-color:var(--accent);}
-.cont-row-title{font-size:14px;font-weight:700;flex:1;}
-
-/* ── BLOCK SYSTEM ────────────────────────────────── */
-.block-list{display:flex;flex-direction:column;gap:12px;}
-.block-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .16s;}
-.block-wrap:hover{border-color:var(--border2);}
-.block-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--border);}
-.block-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
-.block-acts{display:flex;gap:4px;align-items:center;}
-.block-body{padding:16px;}
-.block-add{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border:1.5px dashed var(--border);border-radius:var(--radius);cursor:pointer;color:var(--muted2);transition:all .2s;font-size:13px;font-weight:600;margin-top:4px;}
-.block-add:hover{border-color:var(--accent);color:var(--accent);}
-
-/* ── THUMBNAIL BLOCK ─────────────────────────────── */
-.thumb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
-.thumb-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;position:relative;}
-.thumb-opt{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:1px;margin-bottom:7px;}
-.thumb-title{font-size:14px;font-weight:700;line-height:1.4;margin-bottom:6px;}
-.thumb-note{font-size:12px;color:var(--muted);line-height:1.5;}
-
-/* ── HOOK BLOCK ──────────────────────────────────── */
-.hook-list{display:flex;flex-direction:column;gap:8px;}
-.hook-item{display:flex;align-items:flex-start;gap:10px;padding:12px 13px;background:var(--surface);border-left:3px solid var(--accent);border-radius:0 var(--radius-sm) var(--radius-sm) 0;}
-.hook-text{font-size:14px;font-weight:700;margin-bottom:3px;line-height:1.4;}
-.hook-note{font-size:12px;color:var(--muted);}
-
-/* ── SCENE BLOCK ─────────────────────────────────── */
-.ver-tabs{display:flex;gap:2px;margin-bottom:14px;border-bottom:1px solid var(--border);}
-.ver-tab{padding:6px 13px;font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .16s;font-family:'JetBrains Mono',monospace;}
-.ver-tab:hover{color:var(--text);}
-.ver-tab.on{color:var(--accent);border-bottom-color:var(--accent);}
-.ver-tab.add-ver{color:var(--muted2);}
-.ver-tab.add-ver:hover{color:var(--accent);}
-.scene-list{display:flex;flex-direction:column;gap:8px;}
-.scene-card{display:flex;gap:12px;align-items:flex-start;padding:13px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);}
-.scene-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted2);padding-top:2px;min-width:22px;}
-.scene-body{flex:1;}
-.scene-title{font-size:13px;font-weight:700;margin-bottom:3px;}
-.scene-desc{font-size:12px;color:var(--muted);line-height:1.5;}
-.tension-row{display:flex;gap:4px;margin-top:7px;align-items:center;}
-.t-dot{width:7px;height:7px;border-radius:50%;background:var(--border2);}
-.t-dot.on{background:var(--accent);}
-.t-dot.hi{background:var(--red);}
-
-/* ── BRAINSTORM BLOCK ────────────────────────────── */
-.brain-input-row{display:flex;gap:8px;margin-bottom:10px;align-items:flex-start;}
-.brain-ta{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;resize:none;line-height:1.5;transition:border-color .16s;min-height:40px;}
-.brain-ta:focus{outline:none;border-color:var(--accent);}
-.brain-ta::placeholder{color:var(--muted2);}
-.tag-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
-.tag-btn{font-size:11px;padding:3px 8px;border-radius:20px;cursor:pointer;border:1px solid var(--border);color:var(--muted);transition:all .14s;font-weight:500;background:transparent;}
-.tag-btn:hover{border-color:var(--accent);color:var(--accent);}
-.tag-btn.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
-.filter-bar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
-.f-chip{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid var(--border);cursor:pointer;color:var(--muted);transition:all .14s;background:transparent;}
-.f-chip.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
-.brain-note{background:var(--surface);border-left:3px solid var(--border);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:11px 12px;transition:border-color .16s;}
-.brain-note:hover{border-left-color:var(--accent);}
-.brain-note-text{font-size:13px;line-height:1.6;margin-bottom:7px;}
-.brain-note-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;}
-.nt{font-size:10px;padding:2px 6px;border-radius:10px;background:var(--accent-dim);color:var(--accent);font-weight:600;}
-
-/* ── SO WHAT BLOCK ───────────────────────────────── */
-.sw-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:border-color .16s;}
-.sw-item:hover{border-color:var(--border2);}
-.sw-item.on{border-color:var(--green);background:rgba(61,220,132,.04);}
-.sw-box{width:18px;height:18px;border:2px solid var(--border2);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .16s;}
-.sw-item.on .sw-box{background:var(--green);border-color:var(--green);color:#000;}
-
-/* ── MEMO BLOCK ──────────────────────────────────── */
-.memo-ta{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;line-height:1.65;resize:vertical;min-height:100px;transition:border-color .16s;}
-.memo-ta:focus{outline:none;border-color:var(--accent);}
-
-/* ── CHECKLIST BLOCK ─────────────────────────────── */
-.cl-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:border-color .16s;}
-.cl-item:hover{border-color:var(--border2);}
-.cl-item.done{opacity:.5;}
-.cl-box{width:16px;height:16px;border:2px solid var(--border2);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .16s;}
-.cl-item.done .cl-box{background:var(--green);border-color:var(--green);color:#000;}
-.cl-text{font-size:13px;flex:1;}
-.cl-item.done .cl-text{text-decoration:line-through;color:var(--muted);}
-
-/* ── PERSONA SECTION ─────────────────────────────── */
-.persona-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;}
-.persona-field{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;}
-.persona-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
-.persona-ta{width:100%;background:transparent;border:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;line-height:1.6;resize:none;min-height:72px;}
-.persona-ta:focus{outline:none;}
-.persona-ta::placeholder{color:var(--muted2);}
-
-/* ── HOOK BANK ───────────────────────────────────── */
-.hookbank-item{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;background:var(--surface);border-left:3px solid var(--accent);border-radius:0 var(--radius-sm) var(--radius-sm) 0;margin-bottom:7px;}
-
-/* ── SEED IDEAS ──────────────────────────────────── */
-.seed-item{background:var(--surface);border-left:3px solid var(--blue);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:11px 12px;margin-bottom:7px;cursor:pointer;transition:border-color .16s;}
-.seed-item:hover{border-left-color:var(--accent);}
-
-/* ── YOUTUBER DB ─────────────────────────────────── */
-.yt-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:10px;}
-.yt-name{font-size:15px;font-weight:700;}
-.yt-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;}
-.ytag{font-size:10px;padding:2px 7px;border-radius:4px;background:var(--card2);color:var(--muted);border:1px solid var(--border);}
-.log-timeline{margin-top:14px;display:flex;flex-direction:column;gap:0;}
-.log-entry{display:flex;gap:12px;position:relative;padding-bottom:12px;}
-.log-entry:last-child{padding-bottom:0;}
-.log-entry::before{content:'';position:absolute;left:40px;top:18px;bottom:0;width:1px;background:var(--border);}
-.log-entry:last-child::before{display:none;}
-.log-dt{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted2);width:34px;flex-shrink:0;padding-top:4px;text-align:right;line-height:1.4;}
-.log-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:5px;position:relative;z-index:1;}
-.log-body{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;}
-.log-subs{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);font-weight:500;margin-bottom:4px;}
-.log-row{font-size:12px;color:var(--muted);margin-bottom:2px;line-height:1.5;}
-.log-row span{color:var(--text);}
-
-/* ── TREND SECTION ───────────────────────────────── */
-.trend-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px;margin-bottom:8px;}
-.trend-head{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
-.season-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.trend-text{font-size:13px;line-height:1.55;}
-
-/* ── STATUS SUMMARY ──────────────────────────────── */
-.status-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:24px;}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;text-align:center;}
-.stat-num{font-family:'Bebas Neue',cursive;font-size:32px;letter-spacing:2px;line-height:1;}
-.stat-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:4px;}
-
-/* ── FORMS ───────────────────────────────────────── */
-.fg{margin-bottom:14px;}
-.fl{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;display:block;}
-.fi,.ft,.fs{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 11px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;transition:border-color .16s;}
-.fi:focus,.ft:focus,.fs:focus{outline:none;border-color:var(--accent);}
-.fi::placeholder,.ft::placeholder{color:var(--muted2);}
-.ft{resize:vertical;min-height:68px;line-height:1.5;}
-.fs option{background:var(--card);}
-.pill-wrap{display:flex;flex-wrap:wrap;gap:5px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;min-height:38px;align-items:center;transition:border-color .16s;}
-.pill-wrap:focus-within{border-color:var(--accent);}
-.pill{background:var(--accent-dim);color:var(--accent);border-radius:20px;padding:2px 7px;font-size:11px;display:flex;align-items:center;gap:3px;}
-.pill-x{cursor:pointer;font-size:12px;line-height:1;}
-.pill-input{border:none;background:transparent;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;min-width:80px;flex:1;}
-.pill-input:focus{outline:none;}
-.pill-input::placeholder{color:var(--muted2);}
-.tension-pick{display:flex;gap:6px;flex-wrap:wrap;}
-.tp-btn{padding:5px 11px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:11px;transition:all .14s;font-family:'Noto Sans KR',sans-serif;}
-.tp-btn.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
-.tpl-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
-.tpl-btn{padding:14px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all .16s;text-align:left;}
-.tpl-btn:hover{border-color:var(--accent);}
-.tpl-btn.on{border-color:var(--accent);background:var(--accent-dim);}
-.tpl-btn-name{font-size:13px;font-weight:700;margin-bottom:3px;}
-.tpl-btn-desc{font-size:11px;color:var(--muted);}
-
-/* ── MODAL ───────────────────────────────────────── */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;}
-.modal{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto;animation:slideIn .16s ease;}
-.modal-wide{max-width:580px;}
-.modal-title{font-size:16px;font-weight:800;margin-bottom:18px;}
-.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;}
-
-/* ── EMPTY STATE ─────────────────────────────────── */
-.empty{text-align:center;padding:40px 20px;color:var(--muted2);}
-.empty-ico{font-size:30px;margin-bottom:10px;}
-.empty-txt{font-size:13px;}
-
-/* ── MISC ────────────────────────────────────────── */
-.sec-title{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
-.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-.sec-head .sec-title{margin-bottom:0;}
-.divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
-.note-date{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);}
-.ref-comment{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 11px;font-size:12px;color:var(--muted);line-height:1.5;cursor:pointer;transition:border-color .16s;}
-.ref-comment:hover{border-color:var(--accent);color:var(--text);}
-.ref-comment-editing{background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:9px 11px;font-size:12px;color:var(--text);line-height:1.5;width:100%;font-family:'Noto Sans KR',sans-serif;resize:none;}
-.ref-comment-editing:focus{outline:none;}
-
-@keyframes fadeIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
-@keyframes slideIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.fade-in{animation:fadeIn .2s ease;}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>김태양 | Research Portfolio</title>
+    <!-- Tailwind CSS (디자인용) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome (아이콘용) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;600;700&display=swap');
+        body { font-family: 'Pretendard', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .bento-box { background-color: #1e293b; border: 1px solid #334155; transition: transform 0.2s; }
+        .bento-box:hover { transform: translateY(-5px); border-color: #10b981; }
+        .timeline-dot { width: 12px; height: 12px; background-color: #10b981; border-radius: 50%; position: absolute; left: -6px; top: 6px; }
+        .timeline-line { border-left: 2px solid #334155; position: relative; padding-left: 20px; padding-bottom: 30px; }
+    </style>
 </head>
-<body>
-<div id="app"></div>
-<script>
-'use strict';
-// ═══════════════════════════════════════════════════
-//  CONSTANTS
-// ═══════════════════════════════════════════════════
-const KEY = 'planboard_v2';
-const STATUSES = ['아이디어','기획중','촬영','편집','완료'];
-const TYPES = { longform:'롱폼', shorts:'쇼츠', compare:'비교/검증', blank:'빈 캔버스' };
-const TYPE_TPL = {
-  longform: ['thumbnail','scene','brainstorm','sowhat'],
-  shorts:   ['hook','thumbnail','brainstorm'],
-  compare:  ['thumbnail','scene','brainstorm','sowhat'],
-  blank:    []
-};
-const BLOCK_LABELS = {
-  thumbnail:'🎯 썸네일 & 제목 후보', hook:'🪝 훅 슬롯',
-  scene:'🎬 씬 보드', brainstorm:'🧠 브레인스토밍',
-  sowhat:'✅ So What? 체크', memo:'📝 텍스트 메모',
-  checklist:'📋 커스텀 체크리스트'
-};
-const SWQ = [
-  '시각적으로 재미있는 구간이 충분한가?',
-  '말이 너무 길어지는 구간은 없는가? (B롤 삽입 필요)',
-  '시청자가 내일 친구에게 뭐라고 떠들 수 있을 만큼 명확한 결론이 있는가?',
-  '훅이 첫 5초 안에 나오는가?',
-  '클라이맥스가 영상 전반부 이후에 배치되어 있는가?',
-];
-const BTAGS = ['#훅','#썸네일','#스크립트','#제품','#레퍼런스','#아이디어','#비교구조','#편집','#쇼츠'];
-const SEASON_COLORS = ['#ffb340','#ff5050','#3ddc84','#5b9cf6','#a78bfa','#f06'];
+<body class="antialiased">
 
-// ═══════════════════════════════════════════════════
-//  STORAGE
-// ═══════════════════════════════════════════════════
-function loadData() {
-  try { const r=localStorage.getItem(KEY); if(r) return JSON.parse(r); } catch(e){}
-  return {channels:[],projects:[],contents:[],youtubers:[],settings:{theme:'dark'}};
-}
-function saveData() {
-  localStorage.setItem(KEY, JSON.stringify(S.data));
-  writeToFolder();
-}
-function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
-function fmtDate(iso){if(!iso)return''; const d=new Date(iso); return `${d.getFullYear()}.${p2(d.getMonth()+1)}.${p2(d.getDate())}`;}
-function fmtShort(iso){if(!iso)return''; const d=new Date(iso); return `${String(d.getFullYear()).slice(2)}/${p2(d.getMonth()+1)}/${p2(d.getDate())}`;}
-function p2(n){return String(n).padStart(2,'0');}
-function esc(s){if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-
-// IndexedDB for folder handle
-let _idb=null;
-async function getIDB(){
-  if(_idb)return _idb;
-  return new Promise((res,rej)=>{
-    const req=indexedDB.open('planboard_idb',1);
-    req.onupgradeneeded=e=>e.target.result.createObjectStore('meta');
-    req.onsuccess=e=>{_idb=e.target.result;res(_idb);};
-    req.onerror=()=>rej(req.error);
-  });
-}
-async function idbSet(key,val){const db=await getIDB();return new Promise((res,rej)=>{const tx=db.transaction('meta','readwrite');tx.objectStore('meta').put(val,key);tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});}
-async function idbGet(key){const db=await getIDB();return new Promise((res,rej)=>{const tx=db.transaction('meta','readonly');const req=tx.objectStore('meta').get(key);req.onsuccess=()=>res(req.result);req.onerror=()=>rej(req.error);});}
-
-let _dirHandle=null, _saveStatus='no-folder', _lastSaved=null, _writeTimer=null;
-
-async function initFolder(){
-  try{
-    const h=await idbGet('dirHandle');
-    if(!h){_saveStatus='no-folder';render();return;}
-    _dirHandle=h;
-    const p=await h.queryPermission({mode:'readwrite'});
-    _saveStatus=p==='granted'?'saved':'needs-permission';
-    if(p==='granted')await writeToFolder();
-  }catch(e){_saveStatus='no-folder';}
-  render();
-}
-async function pickFolder(){
-  if(!window.showDirectoryPicker){alert('Chrome 또는 Edge를 사용해주세요.');return;}
-  try{
-    const h=await window.showDirectoryPicker({mode:'readwrite'});
-    _dirHandle=h; await idbSet('dirHandle',h); await writeToFolder();
-  }catch(e){if(e.name!=='AbortError'){_saveStatus='error';render();}}
-}
-async function reconnectFolder(){
-  if(!_dirHandle)return;
-  try{const p=await _dirHandle.requestPermission({mode:'readwrite'});if(p==='granted')await writeToFolder();else{_saveStatus='error';render();}}
-  catch(e){_saveStatus='error';render();}
-}
-async function writeToFolder(){
-  if(!_dirHandle)return;
-  clearTimeout(_writeTimer);
-  _writeTimer=setTimeout(async()=>{
-    try{
-      _saveStatus='saving';render();
-      const fh=await _dirHandle.getFileHandle('planboard_data.json',{create:true});
-      const w=await fh.createWritable();
-      await w.write(JSON.stringify(S.data,null,2));
-      await w.close();
-      _saveStatus='saved';_lastSaved=new Date();
-    }catch(e){_saveStatus=e.name==='NotAllowedError'?'needs-permission':'error';}
-    render();
-  },300);
-}
-async function manualSave(){
-  const now=new Date();
-  const dateStr=`${now.getFullYear()}-${p2(now.getMonth()+1)}-${p2(now.getDate())}`;
-  const json=JSON.stringify(S.data,null,2);
-
-  // 폴더 지정된 경우 → 폴더에 직접 저장
-  if(_dirHandle){
-    try{
-      const perm=await _dirHandle.queryPermission({mode:'readwrite'});
-      if(perm==='granted'||await _dirHandle.requestPermission({mode:'readwrite'})==='granted'){
-        const fileName=`planboard_${dateStr}.json`;
-        const fh=await _dirHandle.getFileHandle(fileName,{create:true});
-        const w=await fh.createWritable();
-        await w.write(json);
-        await w.close();
-        alert(`📁 ${_dirHandle.name} 폴더에 저장 완료!\n파일명: ${fileName}`);
-        return;
-      }
-    }catch(e){ /* 실패 시 다운로드로 fallback */ }
-  }
-
-  // 폴더 미지정 또는 실패 → 브라우저 다운로드
-  const blob=new Blob([json],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url; a.download=`planboard_${dateStr}.json`; a.click();
-  URL.revokeObjectURL(url);
-}
-function importJSON(){
-  const inp=document.createElement('input');
-  inp.type='file';inp.accept='.json';
-  inp.onchange=e=>{
-    const f=e.target.files[0];if(!f)return;
-    const r=new FileReader();
-    r.onload=ev=>{
-      try{
-        const d=JSON.parse(ev.target.result);
-        if(!d.channels||!d.projects||!d.contents){alert('올바른 PLANBOARD 파일이 아닙니다.');return;}
-        if(confirm('현재 데이터를 불러온 파일로 교체할까요?')){S.data=d;saveData();go('home');}
-      }catch(e){alert('파일을 읽을 수 없어요.');}
-    };
-    r.readAsText(f);
-  };
-  inp.click();
-}
-
-// ═══════════════════════════════════════════════════
-//  STATE
-// ═══════════════════════════════════════════════════
-const S = {
-  view:'home', channelId:null, projectId:null, contentId:null,
-  channelTab:'projects', projectTab:'contents',
-  modal:null, bFilter:{}, activeVerIds:{},
-  data: loadData()
-};
-
-// ═══════════════════════════════════════════════════
-//  NAVIGATE
-// ═══════════════════════════════════════════════════
-function go(view,p={}){
-  S.view=view;
-  if(p.channelId!==undefined)S.channelId=p.channelId;
-  if(p.projectId!==undefined){
-    S.projectId=p.projectId;
-    const proj=getProj(p.projectId);
-    if(proj)S.channelId=proj.channelId;
-  }
-  if(p.contentId!==undefined){
-    S.contentId=p.contentId;
-    const cont=getCont(p.contentId);
-    if(cont){
-      const proj=getProj(cont.projectId);
-      if(proj){S.projectId=cont.projectId;S.channelId=proj.channelId;}
-    }
-  }
-  if(p.channelTab)S.channelTab=p.channelTab;
-  if(p.projectTab)S.projectTab=p.projectTab;
-  S.modal=null;
-  render();
-}
-function openM(type,data={}){S.modal={type,data};render();}
-function closeM(){S.modal=null;render();}
-
-// ═══════════════════════════════════════════════════
-//  DATA GETTERS
-// ═══════════════════════════════════════════════════
-function getCh(id){return S.data.channels.find(c=>c.id===id);}
-function getProj(id){return S.data.projects.find(p=>p.id===id);}
-function getCont(id){return S.data.contents.find(c=>c.id===id);}
-function getYt(id){return S.data.youtubers.find(y=>y.id===id);}
-function chProjects(chId){return S.data.projects.filter(p=>p.channelId===chId);}
-function projContents(pId){return S.data.contents.filter(c=>c.projectId===pId);}
-function chYoutubers(chId){return S.data.youtubers.filter(y=>y.channelId===chId);}
-
-// ═══════════════════════════════════════════════════
-//  DATA OPS
-// ═══════════════════════════════════════════════════
-function mkChannel(name,desc){
-  const ch={id:uid(),name,desc,createdAt:new Date().toISOString(),
-    persona:{target:'',tone:'',differentiator:'',notes:''},
-    hookBank:[],seedIdeas:[],trendLogs:[],seasons:[]};
-  S.data.channels.push(ch);saveData();return ch.id;
-}
-function updateChannel(id,u){const i=S.data.channels.findIndex(c=>c.id===id);if(i!==-1){Object.assign(S.data.channels[i],u);saveData();}}
-function updatePersona(chId,field,val){const ch=getCh(chId);if(!ch)return;ch.persona[field]=val;saveData();}
-function deleteChannel(id){
-  const pids=S.data.projects.filter(p=>p.channelId===id).map(p=>p.id);
-  S.data.channels=S.data.channels.filter(c=>c.id!==id);
-  S.data.projects=S.data.projects.filter(p=>p.channelId!==id);
-  S.data.contents=S.data.contents.filter(c=>!pids.includes(c.projectId));
-  S.data.youtubers=S.data.youtubers.filter(y=>y.channelId!==id);
-  saveData();
-}
-function mkProject(channelId,name,desc){
-  const p={id:uid(),channelId,name,desc,ytRefs:[],createdAt:new Date().toISOString()};
-  S.data.projects.push(p);saveData();return p.id;
-}
-function deleteProject(id){
-  S.data.projects=S.data.projects.filter(p=>p.id!==id);
-  S.data.contents=S.data.contents.filter(c=>c.projectId!==id);
-  saveData();
-}
-function mkContent(projectId,title,type){
-  const blocks=TYPE_TPL[type].map(t=>mkBlockData(t));
-  const c={id:uid(),projectId,title,type,status:'아이디어',scheduledAt:'',blocks,createdAt:new Date().toISOString()};
-  S.data.contents.push(c);saveData();return c.id;
-}
-function updateContent(id,u){const i=S.data.contents.findIndex(c=>c.id===id);if(i!==-1){Object.assign(S.data.contents[i],u);saveData();}}
-function deleteContent(id){S.data.contents=S.data.contents.filter(c=>c.id!==id);saveData();}
-function mkBlockData(type){
-  const id=uid();
-  if(type==='thumbnail')return{id,type,data:{items:[]}};
-  if(type==='hook')return{id,type,data:{items:[]}};
-  if(type==='scene'){const vid=uid();return{id,type,data:{versions:[{id:vid,name:'Ver.A',scenes:[]}],activeVersionId:vid}};}
-  if(type==='brainstorm')return{id,type,data:{notes:[]}};
-  if(type==='sowhat')return{id,type,data:{checks:[false,false,false,false,false]}};
-  if(type==='memo')return{id,type,data:{content:''}};
-  if(type==='checklist')return{id,type,data:{title:'체크리스트',items:[]}};
-  return{id,type,data:{}};
-}
-function addBlock(contId,type){
-  const c=getCont(contId);if(!c)return;
-  c.blocks.push(mkBlockData(type));saveData();render();
-}
-function removeBlock(contId,blockId){
-  const c=getCont(contId);if(!c)return;
-  c.blocks=c.blocks.filter(b=>b.id!==blockId);saveData();render();
-}
-function moveBlock(contId,blockId,dir){
-  const c=getCont(contId);if(!c)return;
-  const i=c.blocks.findIndex(b=>b.id===blockId);if(i===-1)return;
-  const ni=i+dir;if(ni<0||ni>=c.blocks.length)return;
-  [c.blocks[i],c.blocks[ni]]=[c.blocks[ni],c.blocks[i]];saveData();render();
-}
-function getBlock(contId,blockId){const c=getCont(contId);return c?.blocks.find(b=>b.id===blockId);}
-
-// Thumbnail ops
-function addThumb(contId,bId,title,note){const b=getBlock(contId,bId);if(!b)return;b.data.items.push({id:uid(),title,note});saveData();}
-function removeThumb(contId,bId,itemId){const b=getBlock(contId,bId);if(!b)return;b.data.items=b.data.items.filter(i=>i.id!==itemId);saveData();}
-
-// Hook ops
-function addHook(contId,bId,text,note){const b=getBlock(contId,bId);if(!b)return;b.data.items.push({id:uid(),text,note});saveData();}
-function removeHook(contId,bId,itemId){const b=getBlock(contId,bId);if(!b)return;b.data.items=b.data.items.filter(i=>i.id!==itemId);saveData();}
-
-// Scene ops
-function addVersion(contId,bId,name){
-  const b=getBlock(contId,bId);if(!b)return;
-  const vid=uid();b.data.versions.push({id:vid,name,scenes:[]});
-  b.data.activeVersionId=vid;saveData();render();
-}
-function setActiveVer(contId,bId,vid){const b=getBlock(contId,bId);if(!b)return;b.data.activeVersionId=vid;saveData();render();}
-function addScene(contId,bId,title,desc,tension){
-  const b=getBlock(contId,bId);if(!b)return;
-  const ver=b.data.versions.find(v=>v.id===b.data.activeVersionId);if(!ver)return;
-  ver.scenes.push({id:uid(),title,desc,tension:parseInt(tension)||3});saveData();
-}
-function removeScene(contId,bId,sceneId){
-  const b=getBlock(contId,bId);if(!b)return;
-  const ver=b.data.versions.find(v=>v.id===b.data.activeVersionId);if(!ver)return;
-  ver.scenes=ver.scenes.filter(s=>s.id!==sceneId);saveData();render();
-}
-function moveScene(contId,bId,sceneId,dir){
-  const b=getBlock(contId,bId);if(!b)return;
-  const ver=b.data.versions.find(v=>v.id===b.data.activeVersionId);if(!ver)return;
-  const i=ver.scenes.findIndex(s=>s.id===sceneId);if(i===-1)return;
-  const ni=i+dir;if(ni<0||ni>=ver.scenes.length)return;
-  [ver.scenes[i],ver.scenes[ni]]=[ver.scenes[ni],ver.scenes[i]];saveData();render();
-}
-
-// Brainstorm ops
-function addNote(contId,bId,text,tags){const b=getBlock(contId,bId);if(!b)return;b.data.notes.unshift({id:uid(),text,tags,createdAt:new Date().toISOString()});saveData();}
-function removeNote(contId,bId,noteId){const b=getBlock(contId,bId);if(!b)return;b.data.notes=b.data.notes.filter(n=>n.id!==noteId);saveData();render();}
-
-// SoWhat ops
-function toggleSW(contId,bId,i){const b=getBlock(contId,bId);if(!b)return;b.data.checks[i]=!b.data.checks[i];saveData();render();}
-
-// Memo ops
-function updateMemo(contId,bId,content){const b=getBlock(contId,bId);if(!b)return;b.data.content=content;saveData();}
-
-// Checklist ops
-function addClItem(contId,bId,text){const b=getBlock(contId,bId);if(!b)return;b.data.items.push({id:uid(),text,done:false});saveData();}
-function toggleCl(contId,bId,itemId){const b=getBlock(contId,bId);if(!b)return;const it=b.data.items.find(i=>i.id===itemId);if(it)it.done=!it.done;saveData();render();}
-function removeCl(contId,bId,itemId){const b=getBlock(contId,bId);if(!b)return;b.data.items=b.data.items.filter(i=>i.id!==itemId);saveData();render();}
-function updateClTitle(contId,bId,title){const b=getBlock(contId,bId);if(!b)return;b.data.title=title;saveData();}
-
-// Hook bank (channel level)
-function addHookBank(chId,text,note){const ch=getCh(chId);if(!ch)return;ch.hookBank.push({id:uid(),text,note,createdAt:new Date().toISOString()});saveData();}
-function removeHookBank(chId,hId){const ch=getCh(chId);if(!ch)return;ch.hookBank=ch.hookBank.filter(h=>h.id!==hId);saveData();render();}
-
-// Seed ideas
-function addSeedIdea(chId,text,tags){const ch=getCh(chId);if(!ch)return;ch.seedIdeas.unshift({id:uid(),text,tags,createdAt:new Date().toISOString()});saveData();}
-function removeSeedIdea(chId,iId){const ch=getCh(chId);if(!ch)return;ch.seedIdeas=ch.seedIdeas.filter(i=>i.id!==iId);saveData();render();}
-
-// Trend logs
-function addTrendLog(chId,text,season,tags){const ch=getCh(chId);if(!ch)return;ch.trendLogs.unshift({id:uid(),text,season,tags,createdAt:new Date().toISOString()});saveData();}
-function removeTrendLog(chId,tId){const ch=getCh(chId);if(!ch)return;ch.trendLogs=ch.trendLogs.filter(t=>t.id!==tId);saveData();render();}
-
-// Youtuber ops
-function addYoutuber(chId,name,url,tags){S.data.youtubers.push({id:uid(),channelId:chId,name,url,tags,logs:[],createdAt:new Date().toISOString()});saveData();}
-function removeYoutuber(id){S.data.youtubers=S.data.youtubers.filter(y=>y.id!==id);S.data.projects.forEach(p=>{p.ytRefs=p.ytRefs.filter(r=>r.ytId!==id);});saveData();render();}
-function addYtLog(ytId,log){const y=getYt(ytId);if(!y)return;y.logs.unshift({id:uid(),date:new Date().toISOString(),...log});saveData();}
-function removeYtLog(ytId,lId){const y=getYt(ytId);if(!y)return;y.logs=y.logs.filter(l=>l.id!==lId);saveData();render();}
-
-// Project YT refs
-function addYtRef(projId,ytId){const p=getProj(projId);if(!p||p.ytRefs.find(r=>r.ytId===ytId))return;p.ytRefs.push({ytId,comment:''});saveData();render();}
-function removeYtRef(projId,ytId){const p=getProj(projId);if(!p)return;p.ytRefs=p.ytRefs.filter(r=>r.ytId!==ytId);saveData();render();}
-function updateYtRefComment(projId,ytId,comment){const p=getProj(projId);if(!p)return;const r=p.ytRefs.find(r=>r.ytId===ytId);if(r)r.comment=comment;saveData();}
-
-// ═══════════════════════════════════════════════════
-//  THEME
-// ═══════════════════════════════════════════════════
-function toggleTheme(){
-  const t=S.data.settings.theme==='dark'?'light':'dark';
-  S.data.settings.theme=t;
-  document.documentElement.setAttribute('data-theme',t);
-  saveData();render();
-}
-
-// ═══════════════════════════════════════════════════
-//  RENDER — CORE
-// ═══════════════════════════════════════════════════
-function render(){
-  const app=document.getElementById('app');
-  let html=rHeader();
-  if(S.modal)html+=rModal();
-  if(S.view==='home')html+=rHome();
-  else if(S.view==='channel')html+=rChannel();
-  else if(S.view==='project')html+=rProject();
-  else if(S.view==='content')html+=rContent();
-  app.innerHTML=html;
-  bindEv();
-}
-
-// ─── HEADER ─────────────────────────────────────
-function rHeader(){
-  const isDark=S.data.settings.theme==='dark';
-  const cont=S.view==='content'?getCont(S.contentId):null;
-  let folderLabel='', folderClass='no-folder', folderAct='pickFolder()';
-  if(_saveStatus==='no-folder'){ folderLabel='📁 폴더 지정'; folderClass='no-folder'; }
-  else if(_saveStatus==='needs-permission'){ folderLabel=`🔑 ${esc(_dirHandle?.name||'재연결 필요')}`; folderClass='needs-perm'; folderAct='reconnectFolder()'; }
-  else if(_saveStatus==='saving'){ folderLabel='↑ 저장 중'; folderClass='saving-btn'; }
-  else if(_saveStatus==='saved'){ const t=_lastSaved?` · ${p2(_lastSaved.getHours())}:${p2(_lastSaved.getMinutes())}`:''; folderLabel=`✓ ${esc(_dirHandle?.name||'')}${t}`; folderClass='saved-btn'; }
-  else if(_saveStatus==='error'){ folderLabel='⚠ 폴더 오류'; folderClass='error'; }
-  const fBtn=`<button class="folder-btn ${folderClass}" onclick="${folderAct}" title="저장 폴더 지정/변경">${folderLabel}</button>`;
-  return `<div class="app-header">
-    <div class="app-logo" onclick="go('home')">PLANBOARD <sub>v2</sub></div>
-    <div class="header-right">
-      ${fBtn}
-      <button class="btn-icon" onclick="importJSON()" title="JSON 불러오기">📂</button>
-      <button class="btn-icon" onclick="manualSave()" title="JSON으로 내보내기 (백업)">💾</button>
-      <button class="btn-icon" onclick="toggleTheme()" title="테마 전환">${isDark?'☀️':'🌙'}</button>
-      ${cont?`<select class="fs" style="width:auto;font-size:12px;padding:5px 9px" onchange="handleContStatus(this.value)">${STATUSES.map(s=>`<option value="${s}" ${cont.status===s?'selected':''}>${s}</option>`).join('')}</select>`:''}
-    </div>
-  </div>`;
-}
-
-// ─── HOME ────────────────────────────────────────
-function rHome(){
-  const chs=S.data.channels;
-  return `<div class="fade-in">
-    <div class="sec-head"><div class="sec-title">채널</div><button class="btn btn-primary btn-sm" onclick="openM('addChannel')">+ 새 채널</button></div>
-    <div class="ch-grid">
-      ${chs.map(ch=>{
-        const pCnt=chProjects(ch.id).length;
-        const cCnt=S.data.contents.filter(c=>chProjects(ch.id).some(p=>p.id===c.projectId)).length;
-        const ytCnt=chYoutubers(ch.id).length;
-        return `<div class="ch-card" onclick="go('channel',{channelId:'${ch.id}'})">
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
-            <div><span class="badge b-channel" style="margin-bottom:7px;display:inline-block">CHANNEL</span><div class="ch-name">${esc(ch.name)}</div></div>
-            <button class="del-btn" onclick="event.stopPropagation();delChannel('${ch.id}')">✕</button>
-          </div>
-          <div class="ch-desc">${esc(ch.desc||'설명 없음')}</div>
-          <div class="ch-meta">
-            <div class="chip">📁 ${pCnt}</div>
-            <div class="chip">🎬 ${cCnt}</div>
-            <div class="chip">📡 ${ytCnt}</div>
-            <div class="chip">${fmtDate(ch.createdAt)}</div>
-          </div>
-        </div>`;
-      }).join('')}
-      <div class="add-ch-card" onclick="openM('addChannel')">
-        <div style="font-size:26px">+</div>
-        <div style="font-size:13px;font-weight:600">새 채널 추가</div>
-      </div>
-    </div>
-  </div>`;
-}
-
-// ─── CHANNEL ────────────────────────────────────
-function rChannel(){
-  const ch=getCh(S.channelId);if(!ch)return'';
-  const tabs=[
-    {id:'projects',label:'📁 프로젝트'},
-    {id:'identity',label:'📌 채널 정체성'},
-    {id:'dashboard',label:'📊 운영 현황'},
-    {id:'trend',label:'📈 트렌드'},
-    {id:'youtubers',label:'🔍 레퍼런스 유튜버'},
-  ];
-  return `<div class="fade-in">
-    <div class="breadcrumb"><span class="crumb" onclick="go('home')">홈</span><span class="sep">›</span><span class="crumb cur">${esc(ch.name)}</span></div>
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap">
-      <div><span class="badge b-channel" style="margin-bottom:6px;display:inline-block">CHANNEL</span><h1 style="font-size:26px;font-weight:900">${esc(ch.name)}</h1>${ch.desc?`<p style="color:var(--muted);font-size:13px;margin-top:3px">${esc(ch.desc)}</p>`:''}</div>
-    </div>
-    <div class="tabs">${tabs.map(t=>`<div class="tab ${S.channelTab===t.id?'on':''}" onclick="go('channel',{channelId:'${ch.id}',channelTab:'${t.id}'})">${t.label}</div>`).join('')}</div>
-    ${S.channelTab==='projects'?rChProjects(ch):S.channelTab==='identity'?rChIdentity(ch):S.channelTab==='dashboard'?rChDashboard(ch):S.channelTab==='trend'?rChTrend(ch):rChYoutubers(ch)}
-  </div>`;
-}
-
-function rChProjects(ch){
-  const projs=chProjects(ch.id);
-  return `<div>
-    <div class="sec-head"><div class="sec-title">프로젝트 (${projs.length})</div><button class="btn btn-primary btn-sm" onclick="openM('addProject',{channelId:'${ch.id}'})">+ 새 프로젝트</button></div>
-    ${projs.length===0?`<div class="empty"><div class="empty-ico">📁</div><div class="empty-txt">아직 프로젝트가 없어요.</div></div>`:`
-    <div class="proj-list">${projs.map(p=>{
-      const cc=projContents(p.id).length;
-      const statMap={};STATUSES.forEach(s=>{statMap[s]=projContents(p.id).filter(c=>c.status===s).length;});
-      return `<div class="proj-row" onclick="go('project',{projectId:'${p.id}'})">
-        <div style="flex:1;min-width:0">
-          <div class="proj-row-name">${esc(p.name)}</div>
-          ${p.desc?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${esc(p.desc)}</div>`:''}
+    <!-- Section 1: Hero & 대시보드 -->
+    <header class="max-w-4xl mx-auto px-6 pt-24 pb-16">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4">
+            데이터로 농업의 미래를 해독하다.
+        </h1>
+        <p class="text-xl text-gray-400 mb-8">
+            초분광 스펙트럼과 딥러닝으로 식물의 언어를 번역하는 연구자, <strong class="text-white">김태양</strong>입니다.
+        </p>
+        
+        <!-- 숫자 카운터 대시보드 -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12 text-center">
+            <div class="bento-box p-6 rounded-2xl">
+                <div class="text-3xl font-bold text-emerald-400 mb-1 counter" data-target="3">0</div>
+                <div class="text-sm text-gray-400">Publications</div>
+            </div>
+            <div class="bento-box p-6 rounded-2xl">
+                <div class="text-3xl font-bold text-emerald-400 mb-1 counter" data-target="5">0</div>
+                <div class="text-sm text-gray-400">Projects</div>
+            </div>
+            <div class="bento-box p-6 rounded-2xl">
+                <div class="text-3xl font-bold text-emerald-400 mb-1 counter" data-target="150">0</div>
+                <div class="text-sm text-gray-400">Processed GB+</div>
+            </div>
+            <div class="bento-box p-6 rounded-2xl">
+                <div class="text-3xl font-bold text-emerald-400 mb-1 counter" data-target="2">0</div>
+                <div class="text-sm text-gray-400">Target Crops</div>
+            </div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-          <span style="font-size:11px;color:var(--muted)">🎬 ${cc}</span>
-          <span class="note-date">${fmtDate(p.createdAt)}</span>
-          <button class="del-btn" onclick="event.stopPropagation();delProject('${p.id}')">✕</button>
+    </header>
+
+    <!-- Section 2: 핵심 연구 & 벤토 박스 -->
+    <section class="max-w-4xl mx-auto px-6 py-12">
+        <h2 class="text-2xl font-bold mb-6 border-b border-gray-700 pb-2">Research Focus & Env.</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bento-box p-6 rounded-2xl md:col-span-2">
+                <h3 class="text-xl font-semibold mb-2"><i class="fa-solid fa-leaf text-emerald-400 mr-2"></i>Hyperspectral Image Analysis</h3>
+                <p class="text-gray-400 text-sm leading-relaxed mb-4">
+                    농업 분야 및 작물을 대상으로 초분광 이미지 기반의 모델링을 수행합니다. 데이터 스크래핑부터 전처리, 딥러닝 분류 파이프라인 구축 및 GUI 설계까지 전 과정을 아우릅니다.
+                </p>
+                <div class="flex gap-2 flex-wrap text-xs font-semibold">
+                    <span class="bg-gray-700 px-2 py-1 rounded">Python</span>
+                    <span class="bg-gray-700 px-2 py-1 rounded">PLS-DA</span>
+                    <span class="bg-gray-700 px-2 py-1 rounded">Deep Learning</span>
+                </div>
+            </div>
+            <div class="bento-box p-6 rounded-2xl">
+                <h3 class="text-xl font-semibold mb-2"><i class="fa-solid fa-server text-emerald-400 mr-2"></i>Hardware Setup</h3>
+                <p class="text-gray-400 text-sm mb-4">대규모 이미지 병렬 처리 및 생성 모델 학습을 위한 워크스테이션 인프라 구성.</p>
+                <div class="font-mono text-sm bg-gray-900 p-3 rounded text-emerald-300">
+                    > Dual RTX A6000<br>
+                    > VRAM 96GB Total
+                </div>
+            </div>
         </div>
-      </div>`;
-    }).join('')}</div>`}
-  </div>`;
-}
+    </section>
 
-function rChIdentity(ch){
-  return `<div>
-    <div style="margin-bottom:20px">
-      <div class="sec-title" style="margin-bottom:14px">페르소나</div>
-      <div class="persona-grid">
-        ${[['target','타깃 시청자','예: 2030 직장인, 절약에 관심 많음'],['tone','톤 & 매너','예: 친근하고 솔직한, 과학적 근거 중시'],['differentiator','핵심 차별점','예: 성분 분석 + 실제 사용 비교'],['notes','추가 메모','채널 방향, 금지 주제 등']].map(([f,l,ph])=>`
-        <div class="persona-field">
-          <div class="persona-label">${l}</div>
-          <textarea class="persona-ta" placeholder="${ph}" onblur="updatePersona('${ch.id}','${f}',this.value)">${esc(ch.persona[f]||'')}</textarea>
-        </div>`).join('')}
-      </div>
-    </div>
-    <hr class="divider">
-    <div style="margin-bottom:20px">
-      <div class="sec-head"><div class="sec-title">훅 문장 뱅크 (${ch.hookBank.length})</div><button class="btn btn-ghost btn-sm" onclick="openM('addHookBank',{chId:'${ch.id}'})">+ 훅 추가</button></div>
-      ${ch.hookBank.length===0?`<p style="color:var(--muted);font-size:13px">재사용 가능한 훅 패턴을 모아두세요.</p>`:ch.hookBank.map(h=>`
-      <div class="hookbank-item">
-        <div style="flex:1"><div style="font-size:14px;font-weight:700;margin-bottom:3px">"${esc(h.text)}"</div>${h.note?`<div style="font-size:12px;color:var(--muted)">${esc(h.note)}</div>`:''}</div>
-        <button class="del-btn" onclick="rmHookBank('${ch.id}','${h.id}')">✕</button>
-      </div>`).join('')}
-    </div>
-    <hr class="divider">
-    <div>
-      <div class="sec-head"><div class="sec-title">씨앗 아이디어 (${ch.seedIdeas.length})</div><button class="btn btn-ghost btn-sm" onclick="openM('addSeedIdea',{chId:'${ch.id}'})">+ 아이디어</button></div>
-      ${ch.seedIdeas.length===0?`<p style="color:var(--muted);font-size:13px">프로젝트가 되기 전 아이디어를 던져두세요.</p>`:`<div style="display:flex;flex-direction:column;gap:7px">${ch.seedIdeas.map(i=>`
-      <div class="seed-item">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
-          <div style="flex:1"><div style="font-size:13px;line-height:1.55;margin-bottom:5px">${esc(i.text)}</div>
-          <div style="display:flex;gap:4px;flex-wrap:wrap">${(i.tags||[]).map(t=>`<span class="nt">${esc(t)}</span>`).join('')}</div></div>
-          <div style="display:flex;gap:4px;align-items:center;flex-shrink:0">
-            <span class="note-date">${fmtDate(i.createdAt)}</span>
-            <button class="del-btn" onclick="rmSeedIdea('${ch.id}','${i.id}')">✕</button>
-          </div>
+    <!-- Section 3: Publications -->
+    <section class="max-w-4xl mx-auto px-6 py-12">
+        <h2 class="text-2xl font-bold mb-6 border-b border-gray-700 pb-2">Publications</h2>
+        <div class="space-y-4">
+            <div class="bento-box p-5 rounded-xl">
+                <span class="text-xs font-bold bg-emerald-900 text-emerald-300 px-2 py-1 rounded">2026.04</span>
+                <h3 class="text-lg font-semibold mt-2 mb-1">초분광 영상 기반 간명성 PLS-DA를 이용한 배추 반쪽시들음병의 감염 판별 및 Verticillium 원인균 분류</h3>
+                <p class="text-sm text-gray-400 mb-3">저자명A, <strong class="text-white">김태양</strong>, 저자명C</p>
+                <div class="flex gap-3">
+                    <a href="#" class="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded transition">📄 PDF (Draft)</a>
+                </div>
+            </div>
         </div>
-      </div>`).join('')}</div>`}
-    </div>
-  </div>`;
-}
+    </section>
 
-function rChDashboard(ch){
-  const projs=chProjects(ch.id);
-  const allConts=S.data.contents.filter(c=>projs.some(p=>p.id===c.projectId));
-  const statusCount={};STATUSES.forEach(s=>{statusCount[s]=allConts.filter(c=>c.status===s).length;});
-  const statusColors={'아이디어':'#888','기획중':'var(--accent)','촬영':'var(--blue)','편집':'var(--purple)','완료':'var(--green)'};
-  const scheduled=allConts.filter(c=>c.scheduledAt&&c.status!=='완료').sort((a,b)=>new Date(a.scheduledAt)-new Date(b.scheduledAt));
-  const completed=allConts.filter(c=>c.status==='완료').sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-  return `<div>
-    <div class="sec-title" style="margin-bottom:14px">상태별 현황</div>
-    <div class="status-grid">${STATUSES.map(s=>`
-    <div class="stat-card"><div class="stat-num" style="color:${statusColors[s]}">${statusCount[s]}</div><div class="stat-label">${s}</div></div>`).join('')}</div>
-    <hr class="divider">
-    <div style="margin-bottom:24px">
-      <div class="sec-title" style="margin-bottom:14px">다음 업로드 예정</div>
-      ${scheduled.length===0?`<p style="color:var(--muted);font-size:13px">예정된 콘텐츠가 없어요. 콘텐츠에 예정일을 입력해보세요.</p>`:
-      `<div class="cont-list">${scheduled.slice(0,5).map(c=>{const proj=getProj(c.projectId);return`
-      <div class="cont-row" onclick="go('content',{contentId:'${c.id}'})">
-        <div class="cont-row-title">${esc(c.title)}</div>
-        <span class="badge t-${c.type}">${TYPES[c.type]||c.type}</span>
-        <span class="badge s-${c.status}">${c.status}</span>
-        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)">${fmtDate(c.scheduledAt)}</span>
-      </div>`;}).join('')}</div>`}
-    </div>
-    <hr class="divider">
-    <div>
-      <div class="sec-title" style="margin-bottom:14px">완료된 콘텐츠 (${completed.length})</div>
-      ${completed.length===0?`<p style="color:var(--muted);font-size:13px">아직 완료된 콘텐츠가 없어요.</p>`:
-      `<div class="cont-list">${completed.map(c=>`
-      <div class="cont-row" onclick="go('content',{contentId:'${c.id}'})">
-        <div class="cont-row-title">${esc(c.title)}</div>
-        <span class="badge t-${c.type}">${TYPES[c.type]||c.type}</span>
-        <span class="note-date">${fmtDate(c.createdAt)}</span>
-      </div>`).join('')}</div>`}
-    </div>
-  </div>`;
-}
+    <!-- Section 4: Timeline -->
+    <section class="max-w-4xl mx-auto px-6 py-12">
+        <h2 class="text-2xl font-bold mb-8 border-b border-gray-700 pb-2">Experience & Projects</h2>
+        <div class="ml-2">
+            <!-- 항목 1 -->
+            <div class="timeline-line">
+                <div class="timeline-dot"></div>
+                <h3 class="font-bold text-lg">농촌진흥청 산학연 과제 연구원</h3>
+                <span class="text-sm text-emerald-400 font-mono">202X.XX - 현재</span>
+                <p class="text-sm text-gray-400 mt-2">작물 병해충 진단을 위한 데이터 분석 및 이미지 스크래핑/처리 진행 중.</p>
+            </div>
+            <!-- 항목 2 -->
+            <div class="timeline-line">
+                <div class="timeline-dot"></div>
+                <h3 class="font-bold text-lg">충남대학교 박사과정</h3>
+                <span class="text-sm text-emerald-400 font-mono">202X.XX - 현재</span>
+                <p class="text-sm text-gray-400 mt-2">농업환경 내 초분광 영상 적용 및 분류 모델링 최적화 연구 (수료).</p>
+            </div>
+            <!-- 항목 3 -->
+            <div class="timeline-line border-transparent pb-0">
+                <div class="timeline-dot bg-gray-500"></div>
+                <h3 class="font-bold text-lg text-gray-400">데이터 수집 자동화 및 GUI 툴 개발</h3>
+                <span class="text-sm text-gray-500 font-mono">개인 프로젝트</span>
+            </div>
+        </div>
+    </section>
 
-function rChTrend(ch){
-  const seasons=ch.seasons||[];
-  const logs=ch.trendLogs||[];
-  const sColor=(name)=>{const s=seasons.find(s=>s.name===name);return s?s.color:SEASON_COLORS[0];};
-  return `<div>
-    <div style="margin-bottom:20px">
-      <div class="sec-head"><div class="sec-title">시즌 정의 (${seasons.length})</div><button class="btn btn-ghost btn-sm" onclick="openM('addSeason',{chId:'${ch.id}'})">+ 시즌</button></div>
-      ${seasons.length===0?`<p style="color:var(--muted);font-size:13px">봄/여름/연말 등 시즌을 정의해두면 트렌드 메모에 태그할 수 있어요.</p>`:
-      `<div style="display:flex;gap:8px;flex-wrap:wrap">${seasons.map(s=>`
-      <div style="display:flex;align-items:center;gap:7px;padding:7px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm)">
-        <div style="width:9px;height:9px;border-radius:50%;background:${s.color};flex-shrink:0"></div>
-        <span style="font-size:12px;font-weight:600">${esc(s.name)}</span>
-        ${s.startDate?`<span style="font-size:11px;color:var(--muted)">${esc(s.startDate)} ~ ${esc(s.endDate||'')}</span>`:''}
-        <button class="del-btn" onclick="rmSeason('${ch.id}','${s.id}')">✕</button>
-      </div>`).join('')}</div>`}
-    </div>
-    <hr class="divider">
-    <div class="sec-head"><div class="sec-title">트렌드 로그 (${logs.length})</div><button class="btn btn-ghost btn-sm" onclick="openM('addTrendLog',{chId:'${ch.id}'})">+ 트렌드 메모</button></div>
-    ${logs.length===0?`<p style="color:var(--muted);font-size:13px">시장 트렌드, 경쟁 채널 동향, 유행 주제 등을 기록해두세요.</p>`:
-    logs.map(t=>`
-    <div class="trend-item">
-      <div class="trend-head">
-        ${t.season?`<div class="season-dot" style="background:${sColor(t.season)}"></div><span style="font-size:11px;font-weight:600;color:var(--muted)">${esc(t.season)}</span>`:''}
-        <span class="note-date">${fmtDate(t.createdAt)}</span>
-        <div style="flex:1"></div>
-        <button class="del-btn" onclick="rmTrendLog('${ch.id}','${t.id}')">✕</button>
-      </div>
-      <div class="trend-text">${esc(t.text)}</div>
-      ${(t.tags||[]).length>0?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:7px">${t.tags.map(tg=>`<span class="nt">${esc(tg)}</span>`).join('')}</div>`:''}
-    </div>`).join('')}
-  </div>`;
-}
+    <!-- Footer -->
+    <footer class="max-w-4xl mx-auto px-6 py-12 text-center text-gray-500 text-sm border-t border-gray-800">
+        <p>Copyright © 2026 Taeyang Kim. All rights reserved.</p>
+    </footer>
 
-function rChYoutubers(ch){
-  const yts=chYoutubers(ch.id);
-  return `<div>
-    <div class="sec-head"><div class="sec-title">레퍼런스 유튜버 DB (${yts.length})</div><button class="btn btn-primary btn-sm" onclick="openM('addYt',{chId:'${ch.id}'})">+ 유튜버 추가</button></div>
-    ${yts.length===0?`<div class="empty"><div class="empty-ico">📡</div><div class="empty-txt">벤치마킹할 유튜버를 추가해보세요.</div></div>`:yts.map(rYtCard).join('')}
-  </div>`;
-}
+    <!-- 숫자 카운터 애니메이션 스크립트 -->
+    <script>
+        const counters = document.querySelectorAll('.counter');
+        const speed = 200;
 
-function rYtCard(y){
-  return `<div class="yt-card">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
-      <div style="flex:1"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><div class="yt-name">${esc(y.name)}</div>${y.url?`<a href="${esc(y.url)}" target="_blank" style="font-size:11px">↗ 채널</a>`:''}</div>
-      <div class="yt-tags">${(y.tags||[]).map(t=>`<span class="ytag">${esc(t)}</span>`).join('')}</div></div>
-      <div style="display:flex;gap:6px;align-items:center">
-        <button class="btn btn-ghost btn-sm" onclick="openM('addYtLog',{ytId:'${y.id}'})">+ 로그</button>
-        <button class="del-btn" onclick="delYt('${y.id}')">✕</button>
-      </div>
-    </div>
-    ${y.logs.length>0?`<div class="log-timeline">${y.logs.map(l=>`
-    <div class="log-entry">
-      <div class="log-dt">${fmtShort(l.date)}</div>
-      <div class="log-dot"></div>
-      <div class="log-body">
-        ${l.subscribers?`<div class="log-subs">구독자 ${esc(l.subscribers)}</div>`:''}
-        ${l.products?`<div class="log-row">📦 <span>${esc(l.products)}</span></div>`:''}
-        ${l.videoUrl?`<div class="log-row">🎯 <a href="${esc(l.videoUrl)}" target="_blank">${esc(l.videoUrl.length>42?l.videoUrl.slice(0,42)+'…':l.videoUrl)}</a></div>`:''}
-        ${l.videoNote?`<div class="log-row">💡 <span>${esc(l.videoNote)}</span></div>`:''}
-        ${l.memo?`<div class="log-row">📝 <span>${esc(l.memo)}</span></div>`:''}
-        <button class="del-btn" style="margin-top:4px;font-size:11px" onclick="delYtLog('${y.id}','${l.id}')">로그 삭제</button>
-      </div>
-    </div>`).join('')}</div>`:''}
-  </div>`;
-}
+        counters.forEach(counter => {
+            const updateCount = () => {
+                const target = +counter.getAttribute('data-target');
+                const count = +counter.innerText;
+                const inc = target / speed;
 
-// ─── PROJECT ────────────────────────────────────
-function rProject(){
-  const p=getProj(S.projectId);if(!p)return'';
-  const ch=getCh(p.channelId);
-  return `<div class="fade-in">
-    <div class="breadcrumb"><span class="crumb" onclick="go('home')">홈</span><span class="sep">›</span><span class="crumb" onclick="go('channel',{channelId:'${p.channelId}'})">${esc(ch?.name||'')}</span><span class="sep">›</span><span class="crumb cur">${esc(p.name)}</span></div>
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px">
-      <div><span class="badge b-sub" style="margin-bottom:6px;display:inline-block">PROJECT</span><h1 style="font-size:22px;font-weight:900">${esc(p.name)}</h1>${p.desc?`<p style="color:var(--muted);font-size:13px;margin-top:3px">${esc(p.desc)}</p>`:''}</div>
-    </div>
-    <div class="tabs">
-      <div class="tab ${S.projectTab==='contents'?'on':''}" onclick="go('project',{projectId:'${p.id}',projectTab:'contents'})">🎬 콘텐츠 (${projContents(p.id).length})</div>
-      <div class="tab ${S.projectTab==='refs'?'on':''}" onclick="go('project',{projectId:'${p.id}',projectTab:'refs'})">🔍 레퍼런스 유튜버</div>
-    </div>
-    ${S.projectTab==='contents'?rProjContents(p):rProjRefs(p)}
-  </div>`;
-}
-
-function rProjContents(p){
-  const conts=projContents(p.id);
-  return `<div>
-    <div class="sec-head"><div class="sec-title">콘텐츠 (${conts.length})</div><button class="btn btn-primary btn-sm" onclick="openM('addContent',{projectId:'${p.id}'})">+ 새 콘텐츠</button></div>
-    ${conts.length===0?`<div class="empty"><div class="empty-ico">🎬</div><div class="empty-txt">첫 콘텐츠 기획을 시작해보세요.</div></div>`:`
-    <div class="cont-list">${conts.map(c=>`
-    <div class="cont-row" onclick="go('content',{contentId:'${c.id}'})">
-      <div class="cont-row-title">${esc(c.title)}</div>
-      <span class="badge t-${c.type}">${TYPES[c.type]||c.type}</span>
-      <span class="badge s-${c.status}">${c.status}</span>
-      ${c.scheduledAt?`<span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent)">${fmtDate(c.scheduledAt)}</span>`:''}
-      <span class="note-date">${fmtDate(c.createdAt)}</span>
-      <button class="del-btn" onclick="event.stopPropagation();delContent('${c.id}')">✕</button>
-    </div>`).join('')}</div>`}
-  </div>`;
-}
-
-function rProjRefs(p){
-  const chYts=chYoutubers(p.channelId);
-  const refs=p.ytRefs||[];
-  const refIds=refs.map(r=>r.ytId);
-  const refYts=chYts.filter(y=>refIds.includes(y.id));
-  const unrefYts=chYts.filter(y=>!refIds.includes(y.id));
-  return `<div>
-    <div style="margin-bottom:20px">
-      <div class="sec-head"><div class="sec-title">이 프로젝트 참조 중 (${refYts.length})</div></div>
-      ${refYts.length===0?`<p style="color:var(--muted);font-size:13px">아래에서 채널 DB 유튜버를 이 프로젝트에 연결하세요.</p>`:
-      refYts.map(y=>{
-        const ref=refs.find(r=>r.ytId===y.id);
-        return `<div class="yt-card" style="margin-bottom:10px">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
-            <div class="yt-name">${esc(y.name)}</div>
-            ${y.url?`<a href="${esc(y.url)}" target="_blank" style="font-size:11px">↗ 채널</a>`:''}
-            <div class="yt-tags">${(y.tags||[]).map(t=>`<span class="ytag">${esc(t)}</span>`).join('')}</div>
-            <div style="flex:1"></div>
-            <button class="del-btn" onclick="delYtRef('${p.id}','${y.id}')">연결 해제</button>
-          </div>
-          <div style="margin-bottom:6px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">프로젝트 코멘트</div>
-          <textarea class="ref-comment-editing" rows="2" placeholder="이 프로젝트에서 이 유튜버를 참고하는 이유, 포인트..." onblur="saveRefComment('${p.id}','${y.id}',this.value)">${esc(ref?.comment||'')}</textarea>
-          ${y.logs.length>0?`<details style="margin-top:10px"><summary style="font-size:11px;color:var(--muted);cursor:pointer">로그 보기 (${y.logs.length})</summary>${rYtCard(y)}</details>`:''}
-        </div>`;
-      }).join('')}
-    </div>
-    ${unrefYts.length>0?`<hr class="divider"><div class="sec-head"><div class="sec-title">채널 DB에서 추가</div></div>
-    <div style="display:flex;flex-direction:column;gap:7px">${unrefYts.map(y=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm)">
-      <div style="flex:1"><div style="font-size:13px;font-weight:600">${esc(y.name)}</div><div class="yt-tags" style="margin-top:3px">${(y.tags||[]).map(t=>`<span class="ytag">${esc(t)}</span>`).join('')}</div></div>
-      <button class="btn btn-ghost btn-sm" onclick="addYtRefOp('${p.id}','${y.id}')">+ 연결</button>
-    </div>`).join('')}</div>`:''}
-    ${chYts.length===0?`<div class="empty"><div class="empty-ico">📡</div><div class="empty-txt">채널에 레퍼런스 유튜버를 먼저 등록해주세요.</div></div>`:''}
-  </div>`;
-}
-
-// ─── CONTENT ────────────────────────────────────
-function rContent(){
-  const c=getCont(S.contentId);if(!c)return'';
-  const p=getProj(c.projectId);
-  const ch=p?getCh(p.channelId):null;
-  return `<div class="fade-in">
-    <div class="breadcrumb">
-      <span class="crumb" onclick="go('home')">홈</span><span class="sep">›</span>
-      <span class="crumb" onclick="go('channel',{channelId:'${ch?.id||''}'})">${esc(ch?.name||'')}</span><span class="sep">›</span>
-      <span class="crumb" onclick="go('project',{projectId:'${p?.id||''}'})">${esc(p?.name||'')}</span><span class="sep">›</span>
-      <span class="crumb cur">${esc(c.title)}</span>
-    </div>
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;gap:12px;flex-wrap:wrap">
-      <h1 style="font-size:26px;font-weight:900;line-height:1.2;flex:1">${esc(c.title)}</h1>
-      <div style="display:flex;gap:7px;align-items:center;flex-shrink:0">
-        <span class="badge t-${c.type}">${TYPES[c.type]||c.type}</span>
-        <span class="badge s-${c.status}">${c.status}</span>
-      </div>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px;flex-wrap:wrap">
-      <label style="font-size:11px;color:var(--muted)">예정일</label>
-      <input type="date" class="fi" style="width:auto;font-size:12px;padding:4px 8px" value="${esc(c.scheduledAt||'')}" onchange="updateContSchedule(this.value)">
-    </div>
-    <div class="block-list">${c.blocks.map((b,i)=>rBlock(b,c.id,i,c.blocks.length)).join('')}</div>
-    <div class="block-add" onclick="openM('addBlock',{contentId:'${c.id}'})">+ 블록 추가</div>
-  </div>`;
-}
-
-function rBlock(b,cid,idx,total){
-  const label=BLOCK_LABELS[b.type]||b.type;
-  const acts=`<div class="block-acts">
-    <button class="btn-icon" onclick="moveBlock('${cid}','${b.id}',-1)" ${idx===0?'disabled':''} title="위로">↑</button>
-    <button class="btn-icon" onclick="moveBlock('${cid}','${b.id}',1)" ${idx===total-1?'disabled':''} title="아래로">↓</button>
-    <button class="btn-icon" onclick="removeBlock('${cid}','${b.id}')" title="삭제" style="color:var(--muted2)">✕</button>
-  </div>`;
-  let body='';
-  if(b.type==='thumbnail') body=rBlockThumbnail(b,cid);
-  else if(b.type==='hook') body=rBlockHook(b,cid);
-  else if(b.type==='scene') body=rBlockScene(b,cid);
-  else if(b.type==='brainstorm') body=rBlockBrainstorm(b,cid);
-  else if(b.type==='sowhat') body=rBlockSoWhat(b,cid);
-  else if(b.type==='memo') body=rBlockMemo(b,cid);
-  else if(b.type==='checklist') body=rBlockChecklist(b,cid);
-  return `<div class="block-wrap">
-    <div class="block-header"><span class="block-label">${label}</span>${acts}</div>
-    <div class="block-body">${body}</div>
-  </div>`;
-}
-
-function rBlockThumbnail(b,cid){
-  const items=b.data.items;
-  return `${items.length===0?`<p style="color:var(--muted);font-size:13px;margin-bottom:12px">어그로 잡을 제목 후보를 추가하세요.</p>`:`
-  <div class="thumb-grid" style="margin-bottom:12px">${items.map((t,i)=>`
-  <div class="thumb-card">
-    <div class="thumb-opt">OPTION ${String.fromCharCode(65+i)}</div>
-    <div class="thumb-title">"${esc(t.title)}"</div>
-    ${t.note?`<div class="thumb-note">${esc(t.note)}</div>`:''}
-    <button class="del-btn" style="position:absolute;top:8px;right:8px" onclick="rmThumb('${cid}','${b.id}','${t.id}')">✕</button>
-  </div>`).join('')}</div>`}
-  <button class="btn btn-ghost btn-sm" onclick="openM('addThumb',{cid:'${cid}',bid:'${b.id}'})">+ 후보 추가</button>`;
-}
-
-function rBlockHook(b,cid){
-  const items=b.data.items;
-  return `${items.length===0?`<p style="color:var(--muted);font-size:13px;margin-bottom:12px">첫 3~5초 안에 나올 훅 문장 후보를 추가하세요.</p>`:`
-  <div class="hook-list" style="margin-bottom:12px">${items.map(h=>`
-  <div class="hook-item">
-    <div style="flex:1">
-      <div class="hook-text">"${esc(h.text)}"</div>
-      ${h.note?`<div class="hook-note">${esc(h.note)}</div>`:''}
-    </div>
-    <button class="del-btn" onclick="rmHook('${cid}','${b.id}','${h.id}')">✕</button>
-  </div>`).join('')}</div>`}
-  <button class="btn btn-ghost btn-sm" onclick="openM('addHook',{cid:'${cid}',bid:'${b.id}'})">+ 훅 추가</button>`;
-}
-
-function rBlockScene(b,cid){
-  const versions=b.data.versions;
-  const activeVer=versions.find(v=>v.id===b.data.activeVersionId)||versions[0];
-  if(!activeVer)return`<button class="btn btn-ghost btn-sm" onclick="openM('addVersion',{cid:'${cid}',bid:'${b.id}'})">+ 첫 버전 만들기</button>`;
-  const scenes=activeVer.scenes;
-  return `<div class="ver-tabs">
-    ${versions.map(v=>`<div class="ver-tab ${v.id===b.data.activeVersionId?'on':''}" onclick="setActiveVer('${cid}','${b.id}','${v.id}')">${esc(v.name)}</div>`).join('')}
-    <div class="ver-tab add-ver" onclick="openM('addVersion',{cid:'${cid}',bid:'${b.id}'})">+ 버전</div>
-  </div>
-  ${scenes.length===0?`<p style="color:var(--muted);font-size:13px;margin-bottom:12px">씬을 추가해서 영상 흐름을 설계하세요.</p>`:`
-  <div class="scene-list" style="margin-bottom:12px">${scenes.map((s,i)=>{
-    const dots=Array(5).fill(0).map((_,j)=>{const on=j<s.tension,hi=s.tension>=4&&on;return`<div class="t-dot ${on?'on':''} ${hi?'hi':''}"></div>`;}).join('');
-    return`<div class="scene-card">
-      <div class="scene-num">${p2(i+1)}</div>
-      <div class="scene-body">
-        <div class="scene-title">${esc(s.title)}</div>
-        ${s.desc?`<div class="scene-desc">${esc(s.desc)}</div>`:''}
-        <div class="tension-row">${dots}<span style="font-size:10px;color:var(--muted);margin-left:5px">텐션 ${s.tension}/5</span></div>
-      </div>
-      <div style="display:flex;gap:2px;align-items:center">
-        <button class="mv-btn" onclick="mvScene('${cid}','${b.id}','${s.id}',-1)" ${i===0?'disabled':''}>↑</button>
-        <button class="mv-btn" onclick="mvScene('${cid}','${b.id}','${s.id}',1)" ${i===scenes.length-1?'disabled':''}>↓</button>
-        <button class="del-btn" onclick="rmScene('${cid}','${b.id}','${s.id}')">✕</button>
-      </div>
-    </div>`;
-  }).join('')}</div>`}
-  <button class="btn btn-ghost btn-sm" onclick="openM('addScene',{cid:'${cid}',bid:'${b.id}'})">+ 씬 추가</button>`;
-}
-
-function rBlockBrainstorm(b,cid){
-  const allTags=[...new Set(b.data.notes.flatMap(n=>n.tags||[]))];
-  const key=`${cid}_${b.id}`;
-  const activeFilter=S.bFilter[key]||null;
-  const notes=activeFilter?b.data.notes.filter(n=>(n.tags||[]).includes(activeFilter)):b.data.notes;
-  return `<div class="brain-input-row">
-    <textarea class="brain-ta" id="bta_${b.id}" placeholder="아이디어를 자유롭게 — Ctrl+Enter로 저장" rows="2" onkeydown="brainKey(event,'${cid}','${b.id}')"></textarea>
-    <button class="btn btn-primary btn-sm" onclick="saveBrainNote('${cid}','${b.id}')">저장</button>
-  </div>
-  <div class="tag-row">
-    <span style="font-size:10px;color:var(--muted)">태그:</span>
-    ${BTAGS.map(t=>`<button class="tag-btn" data-btag="${esc(t)}" data-bkey="${key}" onclick="togBTag(this)">${esc(t)}</button>`).join('')}
-  </div>
-  ${allTags.length>0?`<div class="filter-bar">
-    <span style="font-size:10px;color:var(--muted)">필터:</span>
-    <button class="f-chip ${!activeFilter?'on':''}" onclick="setBF('${key}',null)">전체</button>
-    ${allTags.map(t=>`<button class="f-chip ${activeFilter===t?'on':''}" onclick="setBF('${key}','${esc(t)}')">${esc(t)}</button>`).join('')}
-  </div>`:''}
-  ${notes.length===0?`<p style="color:var(--muted);font-size:13px">아직 아이디어가 없어요.</p>`:`
-  <div style="display:flex;flex-direction:column;gap:7px">${notes.map(n=>`
-  <div class="brain-note">
-    <div class="brain-note-text">${esc(n.text)}</div>
-    <div class="brain-note-foot">
-      <div style="display:flex;gap:4px;flex-wrap:wrap">${(n.tags||[]).map(t=>`<span class="nt">${esc(t)}</span>`).join('')}</div>
-      <div style="display:flex;align-items:center;gap:7px">
-        <span class="note-date">${fmtDate(n.createdAt)}</span>
-        <button class="del-btn" onclick="rmNote('${cid}','${b.id}','${n.id}')">✕</button>
-      </div>
-    </div>
-  </div>`).join('')}</div>`}`;
-}
-
-function rBlockSoWhat(b,cid){
-  const done=b.data.checks.filter(Boolean).length;
-  return `<div style="display:flex;flex-direction:column;gap:7px">
-    ${SWQ.map((q,i)=>`<div class="sw-item ${b.data.checks[i]?'on':''}" onclick="toggleSW('${cid}','${b.id}',${i})">
-      <div class="sw-box">${b.data.checks[i]?'✓':''}</div>
-      <div style="font-size:13px;flex:1">${q}</div>
-    </div>`).join('')}
-    <div style="text-align:right;font-size:11px;color:var(--muted);margin-top:4px">${done}/${SWQ.length} 완료</div>
-  </div>`;
-}
-
-function rBlockMemo(b,cid){
-  return `<textarea class="memo-ta" placeholder="자유롭게 메모..." onblur="saveMemo('${cid}','${b.id}',this.value)">${esc(b.data.content||'')}</textarea>`;
-}
-
-function rBlockChecklist(b,cid){
-  const done=b.data.items.filter(i=>i.done).length;
-  return `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-    <input class="fi" style="flex:1;margin-right:8px;font-size:13px;font-weight:700" value="${esc(b.data.title||'체크리스트')}" onblur="saveClTitle('${cid}','${b.id}',this.value)">
-    <span style="font-size:11px;color:var(--muted);flex-shrink:0">${done}/${b.data.items.length}</span>
-  </div>
-  ${b.data.items.length>0?`<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">${b.data.items.map(it=>`
-  <div class="cl-item ${it.done?'done':''}" onclick="toggleCl('${cid}','${b.id}','${it.id}')">
-    <div class="cl-box">${it.done?'✓':''}</div>
-    <div class="cl-text">${esc(it.text)}</div>
-    <button class="del-btn" onclick="event.stopPropagation();removeCl('${cid}','${b.id}','${it.id}')">✕</button>
-  </div>`).join('')}</div>`:''}
-  <button class="btn btn-ghost btn-sm" onclick="openM('addClItem',{cid:'${cid}',bid:'${b.id}'})">+ 항목 추가</button>`;
-}
-
-// ═══════════════════════════════════════════════════
-//  MODAL
-// ═══════════════════════════════════════════════════
-function rModal(){
-  const m=S.modal;let body='';
-  if(m.type==='addChannel'){
-    body=`<div class="modal-title">새 채널</div>
-    <div class="fg"><label class="fl">채널 이름</label><input class="fi" id="m_name" placeholder="예: 식탐"></div>
-    <div class="fg"><label class="fl">설명 (선택)</label><textarea class="ft" id="m_desc" placeholder="채널의 방향이나 컨셉..."></textarea></div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM()">취소</button><button class="btn btn-primary" onclick="doAddChannel()">만들기</button></div>`;
-  } else if(m.type==='addProject'){
-    body=`<div class="modal-title">새 프로젝트</div>
-    <div class="fg"><label class="fl">프로젝트 이름</label><input class="fi" id="m_name" placeholder="예: 다이소 vs 브랜드 비교 시리즈"></div>
-    <div class="fg"><label class="fl">설명 (선택)</label><textarea class="ft" id="m_desc" placeholder="이 프로젝트에서 다룰 내용..."></textarea></div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM()">취소</button><button class="btn btn-primary" onclick="doAddProject('${m.data.channelId}')">만들기</button></div>`;
-  } else if(m.type==='addContent'){
-    const tpl=S.modal._tpl||'longform';
-    body=`<div class="modal-title">새 콘텐츠</div>
-    <div class="fg"><label class="fl">제목 (가제)</label><input class="fi" id="m_name" placeholder="예: 다이소 마스크팩 vs 메디힐 직접 비교"></div>
-    <div class="fg"><label class="fl">템플릿</label>
-    <div class="tpl-grid">
-      ${Object.entries(TYPES).map(([k,v])=>`<div class="tpl-btn ${tpl===k?'on':''}" onclick="selTpl('${k}','${m.data.projectId}')">
-        <div class="tpl-btn-name">${v}</div>
-        <div class="tpl-btn-desc">${TYPE_TPL[k].map(t=>BLOCK_LABELS[t]||t).join(', ')||'블록 직접 추가'}</div>
-      </div>`).join('')}
-    </div></div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM()">취소</button><button class="btn btn-primary" onclick="doAddContent('${m.data.projectId}','${tpl}')">만들기</button></div>`;
-  } else if(m.type==='addBlock'){
-    body=`<div class="modal-title">블록 추가</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
-      ${Object.entries(BLOCK_LABELS).map(([k,v])=>`<button class="tpl-btn" onclick="doAddBlock('${m.data.contentId}','${k}')"><div class="tpl-btn-name">${v}</div></button>`).join('')}
-    </div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM()">취소</button></div>`;
-  } else if(m.type==='addThumb'){
-    body=`<div class="modal-title">제목/썸네일 후보</div>
-    <div class="fg"><label class="fl">제목 후보</label><input class="fi" id="m_title" placeholder='예: "다이소 3천원이 메디힐 씹어먹는다?"'></div>
-    <div class="fg"><label class="fl">썸네일 컨셉 메모</label><textarea class="ft" id="m_note" placeholder="가격 강조, 충격 표정, 제품 나란히..."></textarea></div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM()">취소</button><button class="btn btn-primary" onclick="doAddThumb('${m.data.cid}','${m.data.bid}')">추가</button></div>`;
-  } else if(m.type==='addHook'){
-    body=`<div class="modal-title">훅 문장 추가</div>
-    <div class="fg"><label class="fl">훅 문장</label><input class="fi" id="m_text" placeholder="예: 3천원짜리가 진짜 가능해?"></div>
-    <div class="fg"><label class="fl">메모 (선택)</label><input class="fi" id="m_note" placeholder="어떤 상황에 쓰는 훅인지..."></div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM()">취소</button><button class="btn btn-primary" onclick="doAddHook('${m.data.cid}','${m.data.bid}')">추가</button></div>`;
-  } else if(m.type==='addVersion'){
-    body=`<div class="modal-title">씬 버전 추가</div>
-    <div class="fg"><label class="fl">버전 이름</label><input class="fi" id="m_name" placeholder="예: Ver.B — 결과 먼저 공개"></div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM()">취소</button><button class="btn btn-primary" onclick="doAddVersion('${m.data.cid}','${m.data.bid}')">추가</button></div>`;
-  } else if(m.type==='addScene'){
-    body=`<div class="modal-title">씬 추가</div>
-    <div class="fg"><label class="fl">씬 제목</label><input class="fi" id="m_title" placeholder="예: 오프닝 — 가격 공개로 시작"></div>
-    <div class="fg"><label class="fl">내용 설명</label><textarea class="ft" id="m_desc" placeholder="이 씬에서 무슨 일이 일어나는지..."></textarea></div>
-    <div class="fg"><label class="fl">텐션 레벨</label><div class="tension-pick">
-      ${[1,2,3,4,5].map(v=>`<button class="tp-btn ${v===3?'on':''}" data-tv="${v}" onclick="pickTension(${v})">${v} ${'★'.repeat(v)}${'☆'.repeat(5-v)}</button>`).join('')}
-    </div><input type="hidden" id="m_tension" value="3"></div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM()">취소</button><button class="btn btn-primary" onclick="doAddScene('${m.data.cid}','${m.data.bid}')">추가</button></div>`;
-  } else if(m.type==='addClItem'){
-    body=`<div class="modal-title">항목 추가</div>
-    <div class="fg"><label class="fl">항목</label><input class="fi" id="m_text" placeholder="체크할 항목 입력..."></div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM()">취소</button><button class="btn btn-primary" onclick="doAddClItem('${m.data.cid}','${m.data.bid}')">추가</button></div>`;
-  } else if(m.type==='addHookBank'){
-    body=`<div class="modal-title">훅 문장 뱅크 추가</div>
-    <div class="fg"><label class="fl">훅 문장</label><input class="fi" id="m_text" placeholder='예: "이거 실제로 가능해?"'></div>
-    <div class="fg"><label class="fl">메모 (선택)</label><input class="fi" id="m_note" placeholder="이 훅의 포인트, 사용 상황..."></div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM()">취소</button><button class="btn btn-primary" onclick="doAddHookBank('${m.data.chId}')">추가</button></div>`;
-  } else if(m.type==='addSeedIdea'){
-    body=`<div class="modal-title">씨앗 아이디어</div>
-    <div class="fg"><label class="fl">아이디어</label><textarea class="ft" id="m_text" placeholder="프로젝트가 되기 전 거친 아이디어..."></textarea></div>
-    <div class="fg"><label class="fl">태그</label><div class="pill-wrap" id="pillWrap"><input class="pill-input" id="m_tag_in" placeholder="입력 후 Enter" onkeydown="addPill(event)"></div><input type="hidden" id="m_tags" value=""></div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM()">취소</button><button class="btn btn-primary" onclick="doAddSeedIdea('${m.data.chId}')">추가</button></div>`;
-  } else if(m.type==='addSeason'){
-    body=`<div class="modal-title">시즌 추가</div>
-    <div class="fg"><label class="fl">시즌 이름</label><input class="fi" id="m_name" placeholder="예: 봄 시즌, 연말 특집"></div>
-    <div class="fg"><label class="fl">색상</label><div style="display:flex;gap:8px;flex-wrap:wrap">${SEASON_COLORS.map((c,i)=>`<div style="width:24px;height:24px;border-radius:50%;background:${c};cursor:pointer;border:2px solid transparent" data-scolor="${c}" onclick="pickSeasonColor('${c}',this)"></div>`).join('')}</div><input type="hidden" id="m_color" value="${SEASON_COLORS[0]}"></div>
-    <div class="fg"><label class="fl">시작 날짜 (선택)</label><input type="date" class="fi" id="m_start"></div>
-    <div class="fg"><label class="fl">종료 날짜 (선택)</label><input type="date" class="fi" id="m_end"></div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM()">취소</button><button class="btn btn-primary" onclick="doAddSeason('${m.data.chId}')">추가</button></div>`;
-  } else if(m.type==='addTrendLog'){
-    const ch=getCh(m.data.chId);
-    const seasons=ch?.seasons||[];
-    body=`<div class="modal-title">트렌드 메모</div>
-    <div class="fg"><label class="fl">내용</label><textarea class="ft" id="m_text" placeholder="요즘 뜨는 주제, 경쟁 채널 동향, 시장 변화..."></textarea></div>
-    ${seasons.length>0?`<div class="fg"><label class="fl">시즌 태그</label><select class="fs" id="m_season"><option value="">선택 안함</option>${seasons.map(s=>`<option value="${esc(s.name)}">${esc(s.name)}</option>`).join('')}</select></div>`:''}
-    <div class="fg"><label class="fl">태그</label><div class="pill-wrap" id="pillWrap"><input class="pill-input" id="m_tag_in" placeholder="입력 후 Enter" onkeydown="addPill(event)"></div><input type="hidden" id="m_tags" value=""></div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM()">취소</button><button class="btn btn-primary" onclick="doAddTrendLog('${m.data.chId}')">추가</button></div>`;
-  } else if(m.type==='addYt'){
-    body=`<div class="modal-title">유튜버 추가</div>
-    <div class="fg"><label class="fl">채널명</label><input class="fi" id="m_name" placeholder="예: 소비자 실험맨"></div>
-    <div class="fg"><label class="fl">채널 URL</label><input class="fi" id="m_url" placeholder="https://youtube.com/@..."></div>
-    <div class="fg"><label class="fl">카테고리 태그</label><div class="pill-wrap" id="pillWrap"><input class="pill-input" id="m_tag_in" placeholder="입력 후 Enter" onkeydown="addPill(event)"></div><input type="hidden" id="m_tags" value=""></div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM()">취소</button><button class="btn btn-primary" onclick="doAddYt('${m.data.chId}')">추가</button></div>`;
-  } else if(m.type==='addYtLog'){
-    body=`<div class="modal-title">관찰 로그 추가</div>
-    <div class="fg"><label class="fl">구독자 수</label><input class="fi" id="m_subs" placeholder="예: 21.4만"></div>
-    <div class="fg"><label class="fl">다루는 제품/주제</label><input class="fi" id="m_prod" placeholder="예: 다이소 주방용품, 스킨케어 비교"></div>
-    <div class="fg"><label class="fl">잘된 영상 URL</label><input class="fi" id="m_vurl" placeholder="https://youtu.be/..."></div>
-    <div class="fg"><label class="fl">잘된 이유 / 포인트</label><input class="fi" id="m_vnote" placeholder="예: 훅이 강렬함, 편집 스타일 변화"></div>
-    <div class="fg"><label class="fl">자유 메모</label><textarea class="ft" id="m_memo" placeholder="채널 전체 분위기 변화, 전략..."></textarea></div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM()">취소</button><button class="btn btn-primary" onclick="doAddYtLog('${m.data.ytId}')">기록</button></div>`;
-  }
-  return `<div class="overlay" onclick="overlayClick(event)"><div class="modal">${body}</div></div>`;
-}
-
-// ═══════════════════════════════════════════════════
-//  EVENT HANDLERS
-// ═══════════════════════════════════════════════════
-let _btags={}, _ptags=[];
-
-function bindEv(){
-  if(S.modal){setTimeout(()=>{const f=document.querySelector('.modal .fi,.modal .ft');if(f)f.focus();},40);}
-  // restore brain tag selections
-  Object.entries(_btags).forEach(([key,tags])=>{
-    tags.forEach(t=>{const el=document.querySelector(`.tag-btn[data-bkey="${key}"][data-btag="${t}"]`);if(el)el.classList.add('on');});
-  });
-}
-
-function overlayClick(e){if(e.target===e.currentTarget)closeM();}
-function handleContStatus(v){const c=getCont(S.contentId);if(c){c.status=v;saveData();render();}}
-function updateContSchedule(v){const c=getCont(S.contentId);if(c){c.scheduledAt=v;saveData();}}
-
-function doAddChannel(){const n=v('m_name');if(!n)return;mkChannel(n,v('m_desc'));closeM();}
-function doAddProject(chId){const n=v('m_name');if(!n)return;mkProject(chId,n,v('m_desc'));closeM();}
-function selTpl(tpl,pid){S.modal._tpl=tpl;render();}
-function doAddContent(pid,tpl){const n=v('m_name');if(!n)return;const id=mkContent(pid,n,tpl||'longform');closeM();go('content',{contentId:id});}
-function doAddBlock(cid,type){addBlock(cid,type);closeM();}
-
-function doAddThumb(cid,bid){const t=v('m_title');if(!t)return;addThumb(cid,bid,t,v('m_note'));closeM();}
-function rmThumb(cid,bid,iid){removeThumb(cid,bid,iid);render();}
-function doAddHook(cid,bid){const t=v('m_text');if(!t)return;addHook(cid,bid,t,v('m_note'));closeM();}
-function rmHook(cid,bid,iid){removeHook(cid,bid,iid);render();}
-function doAddVersion(cid,bid){const n=v('m_name')||`Ver.${String.fromCharCode(65+(getBlock(cid,bid)?.data.versions.length||0))}`;addVersion(cid,bid,n);closeM();}
-function doAddScene(cid,bid){const t=v('m_title');if(!t)return;addScene(cid,bid,t,v('m_desc'),v('m_tension')||3);closeM();}
-function rmScene(cid,bid,sid){removeScene(cid,bid,sid);}
-function mvScene(cid,bid,sid,dir){moveScene(cid,bid,sid,dir);}
-function setActiveVer(cid,bid,vid){const b=getBlock(cid,bid);if(!b)return;b.data.activeVersionId=vid;saveData();render();}
-function pickTension(v2){document.getElementById('m_tension').value=v2;document.querySelectorAll('.tp-btn').forEach(b=>b.classList.toggle('on',parseInt(b.dataset.tv)===v2));}
-
-function togBTag(el){
-  const t=el.dataset.btag, key=el.dataset.bkey;
-  if(!_btags[key])_btags[key]=[];
-  const i=_btags[key].indexOf(t);
-  if(i===-1){_btags[key].push(t);el.classList.add('on');}else{_btags[key].splice(i,1);el.classList.remove('on');}
-}
-function brainKey(e,cid,bid){if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();saveBrainNote(cid,bid);}}
-function saveBrainNote(cid,bid){
-  const ta=document.getElementById(`bta_${bid}`);if(!ta||!ta.value.trim())return;
-  const key=`${cid}_${bid}`;
-  addNote(cid,bid,ta.value.trim(),[...(_btags[key]||[])]);
-  _btags[key]=[];render();
-}
-function rmNote(cid,bid,nid){removeNote(cid,bid,nid);}
-function setBF(key,val){S.bFilter[key]=val;render();}
-function toggleSW(cid,bid,i){const b=getBlock(cid,bid);if(!b)return;b.data.checks[i]=!b.data.checks[i];saveData();render();}
-function saveMemo(cid,bid,val){updateMemo(cid,bid,val);}
-function doAddClItem(cid,bid){const t=v('m_text');if(!t)return;addClItem(cid,bid,t);closeM();}
-function saveClTitle(cid,bid,val){updateClTitle(cid,bid,val);}
-function toggleCl(cid,bid,iid){const b=getBlock(cid,bid);if(!b)return;const it=b.data.items.find(i=>i.id===iid);if(it){it.done=!it.done;saveData();render();}}
-function removeCl(cid,bid,iid){const b=getBlock(cid,bid);if(!b)return;b.data.items=b.data.items.filter(i=>i.id!==iid);saveData();render();}
-
-function doAddHookBank(chId){const t=v('m_text');if(!t)return;addHookBank(chId,t,v('m_note'));closeM();}
-function rmHookBank(chId,hId){removeHookBank(chId,hId);}
-function doAddSeedIdea(chId){const t=v('m_text');if(!t)return;addSeedIdea(chId,t,getTags());closeM();}
-function rmSeedIdea(chId,iId){removeSeedIdea(chId,iId);}
-function doAddSeason(chId){
-  const n=v('m_name');if(!n)return;
-  const ch=getCh(chId);if(!ch)return;
-  if(!ch.seasons)ch.seasons=[];
-  ch.seasons.push({id:uid(),name:n,color:document.getElementById('m_color')?.value||SEASON_COLORS[0],startDate:v('m_start'),endDate:v('m_end')});
-  saveData();closeM();
-}
-function rmSeason(chId,sId){const ch=getCh(chId);if(!ch)return;ch.seasons=ch.seasons.filter(s=>s.id!==sId);saveData();render();}
-function pickSeasonColor(c,el){document.getElementById('m_color').value=c;document.querySelectorAll('[data-scolor]').forEach(e=>e.style.borderColor='transparent');el.style.borderColor=c;}
-function doAddTrendLog(chId){const t=v('m_text');if(!t)return;addTrendLog(chId,t,v('m_season')||'',getTags());closeM();}
-function rmTrendLog(chId,tId){removeTrendLog(chId,tId);}
-function doAddYt(chId){const n=v('m_name');if(!n)return;addYoutuber(chId,n,v('m_url'),getTags());closeM();}
-function delYt(id){if(confirm('유튜버 데이터를 삭제할까요?'))removeYoutuber(id);}
-function doAddYtLog(ytId){addYtLog(ytId,{subscribers:v('m_subs'),products:v('m_prod'),videoUrl:v('m_vurl'),videoNote:v('m_vnote'),memo:v('m_memo')});closeM();}
-function delYtLog(ytId,lId){if(confirm('로그를 삭제할까요?'))removeYtLog(ytId,lId);}
-function addYtRefOp(pid,ytId){addYtRef(pid,ytId);}
-function delYtRef(pid,ytId){if(confirm('연결을 해제할까요?'))removeYtRef(pid,ytId);}
-function saveRefComment(pid,ytId,comment){updateYtRefComment(pid,ytId,comment);}
-
-function delChannel(id){if(confirm('채널과 모든 프로젝트/콘텐츠를 삭제할까요?')){deleteChannel(id);if(S.view!=='home')go('home');else render();}}
-function delProject(id){if(confirm('프로젝트와 모든 콘텐츠를 삭제할까요?')){deleteProject(id);if(S.view!=='home'&&S.view!=='channel')go('channel',{channelId:S.channelId});else render();}}
-function delContent(id){if(confirm('콘텐츠를 삭제할까요?')){deleteContent(id);if(S.view==='content')go('project',{projectId:S.projectId});else render();}}
-function updatePersona(chId,field,val){const ch=getCh(chId);if(!ch)return;if(!ch.persona)ch.persona={};ch.persona[field]=val;saveData();}
-
-// Pill input
-function addPill(e){
-  if(e.key==='Enter'){e.preventDefault();const val=e.target.value.trim();if(!val)return;_ptags.push(val);e.target.value='';document.getElementById('m_tags').value=_ptags.join(',');
-  const pill=document.createElement('span');pill.className='pill';pill.innerHTML=`${esc(val)}<span class="pill-x" onclick="rmPill(this,'${esc(val)}')">×</span>`;e.target.parentNode.insertBefore(pill,e.target);}
-}
-function rmPill(el,t){_ptags=_ptags.filter(x=>x!==t);document.getElementById('m_tags').value=_ptags.join(',');el.parentNode.remove();}
-function getTags(){const v2=document.getElementById('m_tags')?.value||'';const tags=[..._ptags,...(v2?v2.split(',').filter(Boolean):[])];_ptags=[];return[...new Set(tags)];}
-
-// Helpers
-function v(id){return document.getElementById(id)?.value?.trim()||'';}
-
-// ═══════════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════════
-document.documentElement.setAttribute('data-theme', S.data.settings?.theme||'dark');
-render();
-initFolder();
-</script>
+                if (count < target) {
+                    counter.innerText = Math.ceil(count + inc);
+                    setTimeout(updateCount, 15);
+                } else {
+                    counter.innerText = target;
+                }
+            };
+            // 스크롤 시 보이게 하려면 IntersectionObserver를 쓰지만, 여기선 바로 실행
+            setTimeout(updateCount, 500); 
+        });
+    </script>
 </body>
 </html>
