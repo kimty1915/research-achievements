@@ -3,146 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>김태양 | Research Portfolio</title>
-    <!-- Tailwind CSS (디자인용) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome (아이콘용) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>3D Hyperspectral Lab</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;600;700&display=swap');
-        body { font-family: 'Pretendard', sans-serif; background-color: #0f172a; color: #f8fafc; }
-        .bento-box { background-color: #1e293b; border: 1px solid #334155; transition: transform 0.2s; }
-        .bento-box:hover { transform: translateY(-5px); border-color: #10b981; }
-        .timeline-dot { width: 12px; height: 12px; background-color: #10b981; border-radius: 50%; position: absolute; left: -6px; top: 6px; }
-        .timeline-line { border-left: 2px solid #334155; position: relative; padding-left: 20px; padding-bottom: 30px; }
+        body { 
+            margin: 0; overflow: hidden; background-color: #050508; 
+            color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+        #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+        
+        /* UI 오버레이 디자인 */
+        #ui-layer { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            pointer-events: none; z-index: 2; padding: 2.5rem; box-sizing: border-box; 
+        }
+        h1 { 
+            font-size: 1.5rem; letter-spacing: 3px; color: #00ffcc; 
+            text-shadow: 0 0 15px rgba(0,255,204,0.4); margin: 0 0 0.5rem 0; 
+        }
+        .subtitle { font-size: 0.85rem; color: #888; letter-spacing: 1px; text-transform: uppercase; }
+        
+        /* 우측 대시보드 */
+        .dashboard { position: absolute; top: 2.5rem; right: 2.5rem; text-align: right; }
+        .metric { margin-bottom: 1.5rem; }
+        .metric-value { font-size: 1.2rem; font-family: monospace; color: #fff; text-shadow: 0 0 5px rgba(255,255,255,0.5); }
+        .metric-label { font-size: 0.7rem; color: #555; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* 하단 컨트롤러 */
+        #controls { 
+            position: absolute; bottom: 3rem; left: 50%; transform: translateX(-50%); 
+            width: 80%; max-width: 600px; text-align: center; pointer-events: auto; 
+            background: rgba(10, 12, 16, 0.85); padding: 1.5rem 2rem; 
+            border-radius: 12px; border: 1px solid #1f2937; backdrop-filter: blur(10px); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        input[type=range] { 
+            width: 100%; cursor: pointer; accent-color: #00ffcc; 
+            height: 4px; background: #333; outline: none; margin: 15px 0;
+        }
+        #wavelength-display { font-size: 1.8rem; font-weight: bold; color: #00ffcc; font-family: monospace; }
+        #status-display { font-size: 0.9rem; color: #888; font-weight: 500; margin-top: 5px; transition: color 0.3s; }
+        
+        /* 감염 발견 시 텍스트 효과 */
+        .alert { color: #ff3b30 !important; text-shadow: 0 0 15px rgba(255,59,48,0.6); }
+        
+        /* 사용 안내 툴팁 */
+        .tooltip { 
+            position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%);
+            font-size: 0.8rem; color: #666; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px;
+        }
     </style>
 </head>
-<body class="antialiased">
+<body>
 
-    <!-- Section 1: Hero & 대시보드 -->
-    <header class="max-w-4xl mx-auto px-6 pt-24 pb-16">
-        <h1 class="text-4xl md:text-5xl font-bold mb-4">
-            데이터로 농업의 미래를 해독하다.
-        </h1>
-        <p class="text-xl text-gray-400 mb-8">
-            초분광 스펙트럼과 딥러닝으로 식물의 언어를 번역하는 연구자, <strong class="text-white">김태양</strong>입니다.
-        </p>
+    <!-- 3D 렌더링 영역 -->
+    <div id="canvas-container"></div>
+
+    <!-- UI 레이어 -->
+    <div id="ui-layer">
+        <div>
+            <h1>HYPERSPECTRAL LAB</h1>
+            <div class="subtitle">PLS-DA Target: Brassica rapa</div>
+        </div>
         
-        <!-- 숫자 카운터 대시보드 -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12 text-center">
-            <div class="bento-box p-6 rounded-2xl">
-                <div class="text-3xl font-bold text-emerald-400 mb-1 counter" data-target="3">0</div>
-                <div class="text-sm text-gray-400">Publications</div>
+        <div class="dashboard">
+            <div class="metric">
+                <div class="metric-value">Dual RTX A6000</div>
+                <div class="metric-label">Compute Node</div>
             </div>
-            <div class="bento-box p-6 rounded-2xl">
-                <div class="text-3xl font-bold text-emerald-400 mb-1 counter" data-target="5">0</div>
-                <div class="text-sm text-gray-400">Projects</div>
+            <div class="metric">
+                <div class="metric-value" id="accuracy-display">98.4%</div>
+                <div class="metric-label">Classification Accuracy</div>
             </div>
-            <div class="bento-box p-6 rounded-2xl">
-                <div class="text-3xl font-bold text-emerald-400 mb-1 counter" data-target="150">0</div>
-                <div class="text-sm text-gray-400">Processed GB+</div>
-            </div>
-            <div class="bento-box p-6 rounded-2xl">
-                <div class="text-3xl font-bold text-emerald-400 mb-1 counter" data-target="2">0</div>
-                <div class="text-sm text-gray-400">Target Crops</div>
+            <div class="metric">
+                <div class="metric-value">Active</div>
+                <div class="metric-label">Verticillium Tracker</div>
             </div>
         </div>
-    </header>
 
-    <!-- Section 2: 핵심 연구 & 벤토 박스 -->
-    <section class="max-w-4xl mx-auto px-6 py-12">
-        <h2 class="text-2xl font-bold mb-6 border-b border-gray-700 pb-2">Research Focus & Env.</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bento-box p-6 rounded-2xl md:col-span-2">
-                <h3 class="text-xl font-semibold mb-2"><i class="fa-solid fa-leaf text-emerald-400 mr-2"></i>Hyperspectral Image Analysis</h3>
-                <p class="text-gray-400 text-sm leading-relaxed mb-4">
-                    농업 분야 및 작물을 대상으로 초분광 이미지 기반의 모델링을 수행합니다. 데이터 스크래핑부터 전처리, 딥러닝 분류 파이프라인 구축 및 GUI 설계까지 전 과정을 아우릅니다.
-                </p>
-                <div class="flex gap-2 flex-wrap text-xs font-semibold">
-                    <span class="bg-gray-700 px-2 py-1 rounded">Python</span>
-                    <span class="bg-gray-700 px-2 py-1 rounded">PLS-DA</span>
-                    <span class="bg-gray-700 px-2 py-1 rounded">Deep Learning</span>
-                </div>
-            </div>
-            <div class="bento-box p-6 rounded-2xl">
-                <h3 class="text-xl font-semibold mb-2"><i class="fa-solid fa-server text-emerald-400 mr-2"></i>Hardware Setup</h3>
-                <p class="text-gray-400 text-sm mb-4">대규모 이미지 병렬 처리 및 생성 모델 학습을 위한 워크스테이션 인프라 구성.</p>
-                <div class="font-mono text-sm bg-gray-900 p-3 rounded text-emerald-300">
-                    > Dual RTX A6000<br>
-                    > VRAM 96GB Total
-                </div>
-            </div>
+        <div class="tooltip">마우스로 드래그하여 큐브를 회전해보세요</div>
+
+        <div id="controls">
+            <span id="wavelength-display">400 nm</span>
+            <input type="range" id="wave-slider" min="400" max="1000" value="400" step="5">
+            <div id="status-display">Scanning visible spectrum... (Healthy Tissue)</div>
         </div>
-    </section>
+    </div>
 
-    <!-- Section 3: Publications -->
-    <section class="max-w-4xl mx-auto px-6 py-12">
-        <h2 class="text-2xl font-bold mb-6 border-b border-gray-700 pb-2">Publications</h2>
-        <div class="space-y-4">
-            <div class="bento-box p-5 rounded-xl">
-                <span class="text-xs font-bold bg-emerald-900 text-emerald-300 px-2 py-1 rounded">2026.04</span>
-                <h3 class="text-lg font-semibold mt-2 mb-1">초분광 영상 기반 간명성 PLS-DA를 이용한 배추 반쪽시들음병의 감염 판별 및 Verticillium 원인균 분류</h3>
-                <p class="text-sm text-gray-400 mb-3">저자명A, <strong class="text-white">김태양</strong>, 저자명C</p>
-                <div class="flex gap-3">
-                    <a href="#" class="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded transition">📄 PDF (Draft)</a>
-                </div>
-            </div>
-        </div>
-    </section>
+    <!-- Three.js 라이브러리 및 OrbitControls 로드 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
-    <!-- Section 4: Timeline -->
-    <section class="max-w-4xl mx-auto px-6 py-12">
-        <h2 class="text-2xl font-bold mb-8 border-b border-gray-700 pb-2">Experience & Projects</h2>
-        <div class="ml-2">
-            <!-- 항목 1 -->
-            <div class="timeline-line">
-                <div class="timeline-dot"></div>
-                <h3 class="font-bold text-lg">농촌진흥청 산학연 과제 연구원</h3>
-                <span class="text-sm text-emerald-400 font-mono">202X.XX - 현재</span>
-                <p class="text-sm text-gray-400 mt-2">작물 병해충 진단을 위한 데이터 분석 및 이미지 스크래핑/처리 진행 중.</p>
-            </div>
-            <!-- 항목 2 -->
-            <div class="timeline-line">
-                <div class="timeline-dot"></div>
-                <h3 class="font-bold text-lg">충남대학교 박사과정</h3>
-                <span class="text-sm text-emerald-400 font-mono">202X.XX - 현재</span>
-                <p class="text-sm text-gray-400 mt-2">농업환경 내 초분광 영상 적용 및 분류 모델링 최적화 연구 (수료).</p>
-            </div>
-            <!-- 항목 3 -->
-            <div class="timeline-line border-transparent pb-0">
-                <div class="timeline-dot bg-gray-500"></div>
-                <h3 class="font-bold text-lg text-gray-400">데이터 수집 자동화 및 GUI 툴 개발</h3>
-                <span class="text-sm text-gray-500 font-mono">개인 프로젝트</span>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="max-w-4xl mx-auto px-6 py-12 text-center text-gray-500 text-sm border-t border-gray-800">
-        <p>Copyright © 2026 Taeyang Kim. All rights reserved.</p>
-    </footer>
-
-    <!-- 숫자 카운터 애니메이션 스크립트 -->
     <script>
-        const counters = document.querySelectorAll('.counter');
-        const speed = 200;
+        // 1. 씬, 카메라, 렌더러 초기화
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050508, 0.05);
 
-        counters.forEach(counter => {
-            const updateCount = () => {
-                const target = +counter.getAttribute('data-target');
-                const count = +counter.innerText;
-                const inc = target / speed;
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(15, 10, 20);
 
-                if (count < target) {
-                    counter.innerText = Math.ceil(count + inc);
-                    setTimeout(updateCount, 15);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.autoRotate = true; // 큐브 자동 회전
+        controls.autoRotateSpeed = 0.5;
+
+        // 2. 초분광 데이터 큐브 생성 (여러 장의 얇은 Plane을 겹쳐서 구성)
+        const cubeGroup = new THREE.Group();
+        const numBands = 120; // 400~1000nm 범위를 120개의 밴드로 분할
+        const planes = [];
+        const size = 10;
+        const spacing = size / numBands;
+
+        // 기본 텍스처(노이즈)를 생성하여 리얼리티 부여
+        const canvas = document.createElement('canvas');
+        canvas.width = 128; canvas.height = 128;
+        const context = canvas.getContext('2d');
+        for(let i=0; i<128; i++) {
+            for(let j=0; j<128; j++) {
+                const v = Math.floor(Math.random() * 255);
+                context.fillStyle = `rgba(${v},${v},${v},0.5)`;
+                context.fillRect(i, j, 1, 1);
+            }
+        }
+        const texture = new THREE.CanvasTexture(canvas);
+
+        // Z축을 따라 Plane들을 배열
+        for (let i = 0; i < numBands; i++) {
+            const geometry = new THREE.PlaneGeometry(size, size);
+            const material = new THREE.MeshBasicMaterial({
+                color: 0x00ffcc,
+                transparent: true,
+                opacity: 0.03, // 기본적으로 매우 투명하게 설정
+                map: texture,
+                side: THREE.DoubleSide,
+                blending: THREE.AdditiveBlending
+            });
+            const plane = new THREE.Mesh(geometry, material);
+            // 큐브의 중심이 (0,0,0)이 되도록 배치
+            plane.position.z = (i * spacing) - (size / 2);
+            planes.push(plane);
+            cubeGroup.add(plane);
+        }
+
+        // 큐브의 외곽선을 보여주는 와이어프레임 박스 추가
+        const boxGeo = new THREE.BoxGeometry(size, size, size);
+        const boxMat = new THREE.MeshBasicMaterial({ color: 0x1f2937, wireframe: true, transparent: true, opacity: 0.3 });
+        const boundingBox = new THREE.Mesh(boxGeo, boxMat);
+        cubeGroup.add(boundingBox);
+        scene.add(cubeGroup);
+
+        // 3. UI 슬라이더 인터랙션 로직
+        const slider = document.getElementById('wave-slider');
+        const waveDisplay = document.getElementById('wavelength-display');
+        const statusDisplay = document.getElementById('status-display');
+        
+        // 반쪽시들음병 징후가 도드라지는 가상의 타겟 파장 대역 (Red Edge / NIR 부근)
+        const targetWavelength = 730; 
+        const targetRange = 30;
+
+        slider.addEventListener('input', (e) => {
+            const currentWave = parseInt(e.target.value);
+            waveDisplay.innerText = currentWave + ' nm';
+            
+            // 슬라이더 값 조작 시 자동 회전 멈춤
+            controls.autoRotate = false;
+
+            // 특정 파장대역(병징 도출 구간)에 접근했는지 확인
+            const distanceToTarget = Math.abs(currentWave - targetWavelength);
+            
+            if (distanceToTarget < targetRange) {
+                // 질병 징후 발견 상태 (Red)
+                waveDisplay.style.color = '#ff3b30';
+                statusDisplay.innerText = `WARNING: Verticillium signature detected at ${currentWave}nm`;
+                statusDisplay.className = 'alert';
+            } else {
+                // 정상 상태 (Green/Cyan)
+                waveDisplay.style.color = '#00ffcc';
+                statusDisplay.innerText = currentWave < 700 ? 'Scanning visible spectrum... (Healthy Tissue)' : 'Scanning Near-Infrared (NIR)...';
+                statusDisplay.className = '';
+            }
+
+            // 슬라이더 파장에 맞춰 3D 큐브 내부의 Plane 색상 및 투명도 동적 변경
+            planes.forEach((plane, index) => {
+                // index(0~120)를 400~1000nm 파장으로 매핑
+                const planeWave = 400 + (index / numBands) * 600; 
+                
+                // 현재 슬라이더와 가까운 파장대의 Plane만 하이라이트
+                const dist = Math.abs(planeWave - currentWave);
+                if (dist < 15) {
+                    plane.material.opacity = 0.8; // 선택된 파장 강조
+                    if (distanceToTarget < targetRange && Math.abs(planeWave - targetWavelength) < targetRange) {
+                        plane.material.color.setHex(0xff3b30); // 병징 구역은 붉은색
+                    } else {
+                        plane.material.color.setHex(0x00ffcc); // 일반 구역은 시안색
+                    }
                 } else {
-                    counter.innerText = target;
+                    plane.material.opacity = 0.02; // 나머지는 거의 투명하게
+                    plane.material.color.setHex(0x00ffcc);
                 }
-            };
-            // 스크롤 시 보이게 하려면 IntersectionObserver를 쓰지만, 여기선 바로 실행
-            setTimeout(updateCount, 500); 
+            });
         });
+
+        // 4. 애니메이션 렌더링 루프
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
     </script>
 </body>
 </html>
